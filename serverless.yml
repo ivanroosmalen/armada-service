@@ -1,0 +1,223 @@
+
+service: armada # NOTE: update this with your service name
+#app: your-app-name
+#tenant: your-tenant-name
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+
+functions:
+  createUser:
+    handler: handlers/usersHandler.createEntity
+    events:
+      - http:
+          path: users
+          method: post
+  updateUser:
+    handler: handlers/usersHandler.updateEntity
+    events:
+      - http:
+          path: users/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getUser:
+    handler: handlers/usersHandler.getEntity
+    events:
+      - http:
+          path: users/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listUsers:
+    handler: handlers/usersHandler.listEntities
+    events:
+      - http:
+          path: users
+          method: get
+  deleteUser:
+    handler: handlers/usersHandler.deleteEntity
+    events:
+      - http:
+          path: users/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  createMartialArts:
+    handler: handlers/martialArtsHandler.createEntity
+    events:
+      - http:
+          path: martialArts
+          method: post
+  updateMartialArts:
+    handler: handlers/martialArtsHandler.updateEntity
+    events:
+      - http:
+          path: martialArts/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getMartialArts:
+    handler: handlers/martialArtsHandler.getEntity
+    events:
+      - http:
+          path: martialArts/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listMartialArts:
+    handler: handlers/martialArtsHandler.listEntities
+    events:
+      - http:
+          path: martialArts
+          method: get
+  deleteMartialArts:
+    handler: handlers/martialArtsHandler.deleteEntity
+    events:
+      - http:
+          path: martialArts/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  createSchools:
+    handler: handlers/schoolsHandler.createEntity
+    events:
+      - http:
+          path: schools
+          method: post
+  updateSchools:
+    handler: handlers/schoolsHandler.updateEntity
+    events:
+      - http:
+          path: schools/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getSchools:
+    handler: handlers/schoolsHandler.getEntity
+    events:
+      - http:
+          path: schools/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listSchools:
+    handler: handlers/schoolsHandler.listEntities
+    events:
+      - http:
+          path: schools
+          method: get
+  deleteSchools:
+    handler: handlers/schoolsHandler.deleteEntity
+    events:
+      - http:
+          path: schools/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  createClasses:
+    handler: handlers/classesHandler.createEntity
+    events:
+      - http:
+          path: classes
+          method: post
+  updateClasses:
+    handler: handlers/classesHandler.updateEntity
+    events:
+      - http:
+          path: classes/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getClasses:
+    handler: handlers/classesHandler.getEntity
+    events:
+      - http:
+          path: classes/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listClasses:
+    handler: handlers/classesHandler.listEntities
+    events:
+      - http:
+          path: classes
+          method: get
+  deleteClasses:
+    handler: handlers/classesHandler.deleteEntity
+    events:
+      - http:
+          path: classes/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  createAcademies:
+    handler: handlers/academiesHandler.createEntity
+    events:
+      - http:
+          path: academies
+          method: post
+  updateAcademies:
+    handler: handlers/academiesHandler.updateEntity
+    events:
+      - http:
+          path: academies/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getAcademies:
+    handler: handlers/academiesHandler.getEntity
+    events:
+      - http:
+          path: academies/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listAcademies:
+    handler: handlers/academiesHandler.listEntities
+    events:
+      - http:
+          path: academies
+          method: get
+  deleteAcademies:
+    handler: handlers/academiesHandler.deleteEntity
+    events:
+      - http:
+          path: academies/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+
+plugins:
+  - serverless-offline
