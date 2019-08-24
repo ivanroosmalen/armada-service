@@ -15,7 +15,7 @@ let UserSchema = new Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   martialArts: [ {
-      id: String,
+      _id: String,
       name: String,
       thumbnailImg: String,
       profileImg: String,
@@ -25,30 +25,33 @@ let UserSchema = new Schema({
 });
 
 let LocationSchema = new Schema({
-  address: { type: String, required: true},
+  address: { type: String },
   address2: { type: String },
   zipCode: { type: String },
+  city: { type: String },
   stateRegion: { type: String },
-  country: { type: String, required: true }
+  country: { type: String },
+  lat: { type: String },
+  lon: { type: String }
 });
 
 let AcademySchema = new Schema({
   owners: { type: [ UserSchema ], required: true, index: true },
-  school: {
-    id: String,
-    name: String
-  },
   name: { type: String, required: true, index: true },
+  martialArts: { type: [ MartialArtSchema ]},
   locations: { type: [ LocationSchema ] },
-  students: { type: [ UserSchema ] }
+  students: { type: [ UserSchema ] },
+  img: String
 });
 
 let SchoolSchema = new Schema({
   founders: {
-      id: String,
+    type: [{
+      _id: String,
       alias: String,
       firstName: String,
       lastName: String
+    }]
   },
   name: { type: String, required: true, index: true }
 });
@@ -68,7 +71,7 @@ let ScheduleSchema = new Schema({
   daysOfWeek: { type: [String], enum: daysOfWeek },
   entity: {
     type: { type: String, enum: scheduleEntity },
-    id: { type: String },
+    _id: { type: String },
     academyId: String
   },
   excludes: [String]
@@ -76,8 +79,9 @@ let ScheduleSchema = new Schema({
 
 let ClassSchema = new Schema({
   academyId: { type: String },
+  location: { type: LocationSchema },
   attendees: {
-    id: String,
+    _id: String,
     alias: String,
     firstName: String,
     lastName: String,
@@ -87,8 +91,9 @@ let ClassSchema = new Schema({
 
 let EventSchema = new Schema({
   academyId: { type: String },
+  location: { type: LocationSchema },
   attendees: {
-    id: String,
+    _id: String,
     alias: String,
     firstName: String,
     lastName: String,

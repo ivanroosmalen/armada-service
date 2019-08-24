@@ -3,90 +3,102 @@ service: armada # NOTE: update this with your service name
 #app: your-app-name
 #tenant: your-tenant-name
 
+custom:
+  version: v1
+  users:
+    handler: handlers/usersHandler
+    path: ${self:custom.version}/users
+  martialArts:
+    handler: handlers/martialArtsHandler
+    path: ${self:custom.version}/martialArts
+  academies:
+    handler: handlers/academiesHandler
+    path: ${self:custom.version}/academies
+
 provider:
   name: aws
   runtime: nodejs10.x
 
 functions:
   createUser:
-    handler: handlers/usersHandler.createEntity
+    handler: ${self:custom.users.handler}.createEntity
     events:
       - http:
-          path: users
+          path: ${self:custom.users.path}
           method: post
   updateUser:
-    handler: handlers/usersHandler.updateEntity
+    handler: ${self:custom.users.handler}.updateEntity
     events:
       - http:
-          path: users/{id}
+          path: ${self:custom.users.path}/{id}
           method: put
           request:
             parameters:
               paths:
                 id: true
   getUser:
-    handler: handlers/usersHandler.getEntity
+    handler: ${self:custom.users.handler}.getEntity
     events:
       - http:
-          path: users/{id}
+          path: ${self:custom.users.path}/{id}
           method: get
           request:
             parameters:
               paths:
                 id: true
   listUsers:
-    handler: handlers/usersHandler.listEntities
+    handler: ${self:custom.users.handler}.listEntities
     events:
       - http:
-          path: users
+          path: ${self:custom.users.path}
           method: get
   deleteUser:
-    handler: handlers/usersHandler.deleteEntity
+    handler: ${self:custom.users.handler}.deleteEntity
     events:
       - http:
-          path: users/{id}
+          path: ${self:custom.users.path}/{id}
           method: delete
           request:
             parameters:
               paths:
                 id: true
   createMartialArts:
-    handler: handlers/martialArtsHandler.createEntity
+    handler: ${self:custom.martialArts.handler}.createEntity
     events:
       - http:
-          path: martialArts
+          path: ${self:custom.martialArts.path}
           method: post
   updateMartialArts:
-    handler: handlers/martialArtsHandler.updateEntity
+    handler: ${self:custom.martialArts.handler}.updateEntity
     events:
       - http:
-          path: martialArts/{id}
+          path: ${self:custom.martialArts.path}/{id}
           method: put
           request:
             parameters:
               paths:
                 id: true
   getMartialArts:
-    handler: handlers/martialArtsHandler.getEntity
+    handler: ${self:custom.martialArts.handler}.getEntity
     events:
       - http:
-          path: martialArts/{id}
+          path: ${self:custom.martialArts.path}/{id}
           method: get
           request:
             parameters:
               paths:
                 id: true
   listMartialArts:
-    handler: handlers/martialArtsHandler.listEntities
+    handler: ${self:custom.martialArts.handler}.listEntities
     events:
       - http:
-          path: martialArts
+          path: ${self:custom.martialArts.path}
           method: get
   deleteMartialArts:
-    handler: handlers/martialArtsHandler.deleteEntity
+    handler: ${self:custom.martialArts.handler}.deleteEntity
     events:
       - http:
-          path: martialArts/{id}
+          path: ${self:custom.martialArts.path}/{id}
           method: delete
           request:
             parameters:
@@ -177,42 +189,42 @@ functions:
               paths:
                 id: true
   createAcademies:
-    handler: handlers/academiesHandler.createEntity
+    handler: ${self:custom.academies.handler}.createEntity
     events:
       - http:
-          path: academies
+          path: ${self:custom.academies.path}
           method: post
   updateAcademies:
-    handler: handlers/academiesHandler.updateEntity
+    handler: ${self:custom.academies.handler}.updateEntity
     events:
       - http:
-          path: academies/{id}
+          path: ${self:custom.academies.path}/{id}
           method: put
           request:
             parameters:
               paths:
                 id: true
   getAcademies:
-    handler: handlers/academiesHandler.getEntity
+    handler: ${self:custom.academies.handler}.getEntity
     events:
       - http:
-          path: academies/{id}
+          path: ${self:custom.academies.path}/{id}
           method: get
           request:
             parameters:
               paths:
                 id: true
   listAcademies:
-    handler: handlers/academiesHandler.listEntities
+    handler: ${self:custom.academies.handler}.listEntities
     events:
       - http:
-          path: academies
+          path: ${self:custom.academies.path}
           method: get
   deleteAcademies:
-    handler: handlers/academiesHandler.deleteEntity
+    handler: ${self:custom.academies.handler}.deleteEntity
     events:
       - http:
-          path: academies/{id}
+          path: ${self:custom.academies.path}/{id}
           method: delete
           request:
             parameters:
