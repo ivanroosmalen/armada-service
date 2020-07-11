@@ -15,6 +15,11 @@
   "dependencies": {
     "bcrypt": "^3.0.6",
     "dotenv": "^8.0.0",
-    "mongoose": "^5.6.4"
+    "http-errors": "^1.7.3",
+    "jsonwebtoken": "^8.5.1",
+    "middy": "^0.28.4",
+    "moment": "^2.24.0",
+    "mongoose": "^5.6.4",
+    "uuid": "^3.3.3"
   }
 }

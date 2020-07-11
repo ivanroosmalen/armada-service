@@ -6,28 +6,57 @@ service: armada # NOTE: update this with your service name
 custom:
   version: v1
   users:
-    handler: handlers/usersHandler
+    handler: src/handlers/usersHandler
     path: ${self:custom.version}/users
   martialArts:
-    handler: handlers/martialArtsHandler
+    handler: src/handlers/martialArtsHandler
     path: ${self:custom.version}/martialArts
   academies:
-    handler: handlers/academiesHandler
+    handler: src/handlers/academiesHandler
     path: ${self:custom.version}/academies
+  cors:
+    origins:
+      - 'http://localhost*'
+    headers:
+      - Content-Type
+      - X-Amz-Date
+      - Authorization
+      - X-Api-Key
+      - X-Amz-Security-Token
+      - X-Amz-User-Agent
+      - X-Amz-User-Agent
+      - Access-Control-Allow-Origin
+      - X-Xsrf-Token
+      - Api-Key
+      - Cookie
+    allowCredentials: true
 
 provider:
   name: aws
   runtime: nodejs10.x
+  environment: ${file(./serverless.env.yml):${opt:stage, 'dev'}}
 
 functions:
+  register:
+    handler: ${self:custom.users.handler}.register
+    events:
+      - http:
+          path: ${self:custom.users.path}/register
+          method: post
+  login:
+    handler: ${self:custom.users.handler}.login
+    events:
+      - http:
+          path: ${self:custom.users.path}/login
+          method: post
   createUser:
-    handler: ${self:custom.users.handler}.createEntity
+    handler: ${self:custom.users.handler}.create
     events:
       - http:
           path: ${self:custom.users.path}
           method: post
   updateUser:
-    handler: ${self:custom.users.handler}.updateEntity
+    handler: ${self:custom.users.handler}.update
     events:
       - http:
           path: ${self:custom.users.path}/{id}
@@ -37,7 +66,7 @@ functions:
               paths:
                 id: true
   getUser:
-    handler: ${self:custom.users.handler}.getEntity
+    handler: ${self:custom.users.handler}.get
     events:
       - http:
           path: ${self:custom.users.path}/{id}
@@ -47,13 +76,13 @@ functions:
               paths:
                 id: true
   listUsers:
-    handler: ${self:custom.users.handler}.listEntities
+    handler: ${self:custom.users.handler}.list
     events:
       - http:
           path: ${self:custom.users.path}
           method: get
   deleteUser:
-    handler: ${self:custom.users.handler}.deleteEntity
+    handler: ${self:custom.users.handler}.delete
     events:
       - http:
           path: ${self:custom.users.path}/{id}
@@ -63,13 +92,13 @@ functions:
               paths:
                 id: true
   createMartialArts:
-    handler: ${self:custom.martialArts.handler}.createEntity
+    handler: ${self:custom.martialArts.handler}.create
     events:
       - http:
           path: ${self:custom.martialArts.path}
           method: post
   updateMartialArts:
-    handler: ${self:custom.martialArts.handler}.updateEntity
+    handler: ${self:custom.martialArts.handler}.update
     events:
       - http:
           path: ${self:custom.martialArts.path}/{id}
@@ -79,7 +108,7 @@ functions:
               paths:
                 id: true
   getMartialArts:
-    handler: ${self:custom.martialArts.handler}.getEntity
+    handler: ${self:custom.martialArts.handler}.get
     events:
       - http:
           path: ${self:custom.martialArts.path}/{id}
@@ -89,13 +118,13 @@ functions:
               paths:
                 id: true
   listMartialArts:
-    handler: ${self:custom.martialArts.handler}.listEntities
+    handler: ${self:custom.martialArts.handler}.list
     events:
       - http:
           path: ${self:custom.martialArts.path}
           method: get
   deleteMartialArts:
-    handler: ${self:custom.martialArts.handler}.deleteEntity
+    handler: ${self:custom.martialArts.handler}.delete
     events:
       - http:
           path: ${self:custom.martialArts.path}/{id}
@@ -105,13 +134,13 @@ functions:
               paths:
                 id: true
   createSchools:
-    handler: handlers/schoolsHandler.createEntity
+    handler: handlers/schoolsHandler.create
     events:
       - http:
           path: schools
           method: post
   updateSchools:
-    handler: handlers/schoolsHandler.updateEntity
+    handler: handlers/schoolsHandler.update
     events:
       - http:
           path: schools/{id}
@@ -121,7 +150,7 @@ functions:
               paths:
                 id: true
   getSchools:
-    handler: handlers/schoolsHandler.getEntity
+    handler: handlers/schoolsHandler.get
     events:
       - http:
           path: schools/{id}
@@ -131,13 +160,13 @@ functions:
               paths:
                 id: true
   listSchools:
-    handler: handlers/schoolsHandler.listEntities
+    handler: handlers/schoolsHandler.list
     events:
       - http:
           path: schools
           method: get
   deleteSchools:
-    handler: handlers/schoolsHandler.deleteEntity
+    handler: handlers/schoolsHandler.delete
     events:
       - http:
           path: schools/{id}
@@ -147,13 +176,13 @@ functions:
               paths:
                 id: true
   createClasses:
-    handler: handlers/classesHandler.createEntity
+    handler: handlers/classesHandler.create
     events:
       - http:
           path: classes
           method: post
   updateClasses:
-    handler: handlers/classesHandler.updateEntity
+    handler: handlers/classesHandler.update
     events:
       - http:
           path: classes/{id}
@@ -163,7 +192,7 @@ functions:
               paths:
                 id: true
   getClasses:
-    handler: handlers/classesHandler.getEntity
+    handler: handlers/classesHandler.get
     events:
       - http:
           path: classes/{id}
@@ -173,13 +202,13 @@ functions:
               paths:
                 id: true
   listClasses:
-    handler: handlers/classesHandler.listEntities
+    handler: handlers/classesHandler.list
     events:
       - http:
           path: classes
           method: get
   deleteClasses:
-    handler: handlers/classesHandler.deleteEntity
+    handler: handlers/classesHandler.delete
     events:
       - http:
           path: classes/{id}
@@ -189,13 +218,13 @@ functions:
               paths:
                 id: true
   createAcademies:
-    handler: ${self:custom.academies.handler}.createEntity
+    handler: ${self:custom.academies.handler}.create
     events:
       - http:
           path: ${self:custom.academies.path}
           method: post
   updateAcademies:
-    handler: ${self:custom.academies.handler}.updateEntity
+    handler: ${self:custom.academies.handler}.update
     events:
       - http:
           path: ${self:custom.academies.path}/{id}
@@ -205,7 +234,7 @@ functions:
               paths:
                 id: true
   getAcademies:
-    handler: ${self:custom.academies.handler}.getEntity
+    handler: ${self:custom.academies.handler}.get
     events:
       - http:
           path: ${self:custom.academies.path}/{id}
@@ -215,13 +244,13 @@ functions:
               paths:
                 id: true
   listAcademies:
-    handler: ${self:custom.academies.handler}.listEntities
+    handler: ${self:custom.academies.handler}.list
     events:
       - http:
           path: ${self:custom.academies.path}
           method: get
   deleteAcademies:
-    handler: ${self:custom.academies.handler}.deleteEntity
+    handler: ${self:custom.academies.handler}.delete
     events:
       - http:
           path: ${self:custom.academies.path}/{id}

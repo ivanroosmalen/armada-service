@@ -5,15 +5,14 @@ class BaseController {
         this.service = service;
     }
 
-    async createEntity(event) {
+    async create(event) {
         if(!event || !event.body) {
             return handleError(400, 'You need to pass a valid object');
         }
 
         let entity;
         try {
-            let body = JSON.parse(event.body);
-            entity = await this.service.create(body);
+            entity = await this.service.create(event.body);
         } catch(e) {
             return handleError(500, 'Unable to create entity', e);
         }
@@ -27,7 +26,30 @@ class BaseController {
         };
     };
 
-    async updateEntity(event) {
+    async batchCreate(event) {
+        if (!event || !event.body || event.body.length == 0) {
+            return handleError(400, 'You need to pass a valid list of entities');
+        }
+
+        let entities;
+        try {
+            let body = event.body;
+
+            entities = await this.service.batchCreate(body);
+        } catch (e) {
+            return handleError(500, 'Unable to create some entities: ', e);
+        }
+
+        return {
+            statusCode: 201,
+            body: JSON.stringify({
+                message: 'Entities created',
+                result: entities
+            })
+        };
+    }
+
+    async update(event) {
         if(!event || !event.body || !event.pathParameters || !event.pathParameters.id) {
             return handleError(400, 'You need to pass entity info to update an entity');
         }
@@ -35,9 +57,7 @@ class BaseController {
         let entity;
         try {
             let id = event.pathParameters.id;
-            let body = JSON.parse(event.body);
-
-            user = await this.service.update(id, body);
+            user = await this.service.update(id, event.body);
         } catch(e) {
             return handleError(500, 'Unable to update entity', e);
         }
@@ -51,7 +71,7 @@ class BaseController {
         };
     };
 
-    async getEntity(event) {
+    async get(event) {
         if(!event || !event.pathParameters || !event.pathParameters.id) {
             return handleError(400, 'You need to pass a valid id');
         }
@@ -73,7 +93,7 @@ class BaseController {
         };
     };
 
-    async listEntities() {
+    async list() {
         let entities;
 
         try {
@@ -91,7 +111,7 @@ class BaseController {
         };
     };
 
-    async deleteEntity(event) {
+    async delete(event) {
         if(!event || !event.pathParameters || !event.pathParameters.id) {
             return handleError(400, 'You need to pass a valid id');
         }
@@ -111,6 +131,4 @@ class BaseController {
     };
 }
 
-module.exports = {
-  BaseController
-}
+module.exports = BaseController

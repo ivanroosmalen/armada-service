@@ -1,4 +1,4 @@
-class BaseService {
+class MongooseService {
 
   constructor(schema) {
     this.schema = schema;
@@ -11,6 +11,24 @@ class BaseService {
 
       return await this.schema.create(entity);
   };
+
+  async batchCreate(entities) {
+      if (!entities || entities.length === 0) {
+          throw new Error('Cannot create invalid entity');
+      }
+
+      let result = await this.model.insertMany(entities, { ordered: false, rawResult: true });
+
+      if (result.mongoose && result.mongoose.validationErrors && result.mongoose.validationErrors.length) {
+          throw new Error(result.mongoose.validationErrors);
+      }
+
+      if (result.insertedCount != entities.length) {
+          throw new Error('Not all entities were stored');
+      }
+
+      return result.ops;
+  }
 
   async update(id, entity) {
       if(!id) {
@@ -47,6 +65,4 @@ class BaseService {
   };
 }
 
-module.exports = {
-  BaseService
-}
+module.exports = MongooseService
