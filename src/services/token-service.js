@@ -24,16 +24,15 @@ function sign(payload, secret, expiresIn=settings.jwt.exp) {
 };
 
 function verify(token, secret) {
-    let resp = {entity: { valid: false },
-                message: ''};
     try {
-        jwt.verify(token, new Buffer(secret, 'base64'));
-        resp.valid = true;
+        return jwt.verify(token, new Buffer(secret, 'base64'));
     } catch (e) {
-        if (e instanceof jwt.TokenExpiredError || e instanceof jwt.JsonWebTokenError) resp.reason = e.message;
-        else resp.reason = 'unknown'
+        if (e instanceof jwt.TokenExpiredError || e instanceof jwt.JsonWebTokenError) {
+            throw new Error(e.message);
+        } else  {
+          throw new Error('unknown');
+        }
     }
-    return resp;
 };
 
 function decode(token, complete=false) {

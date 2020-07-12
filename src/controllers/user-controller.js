@@ -18,10 +18,9 @@ class UserController extends BaseController {
         let entity = {};
         try {
             let user = await this.service.login(event.body.email, event.body.password);
-
             entity.jwt = await this.generateJWT(user);
         } catch(e) {
-            return handleError(500, 'Unable to create entity', e);
+            return handleError(500, 'Unable to login', e);
         }
 
         return {
@@ -68,7 +67,7 @@ class UserController extends BaseController {
             await this.service.update(user._id, user)
             jwt = tokenService.sign(payload, secret, settings.jwt.exp);
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
         return jwt;
     }

@@ -2,10 +2,15 @@ const createError = require('http-errors');
 const { HttpError } = createError;
 const middy = require('middy');
 const tokenService = require('../services/token-service.js');
+const UserService = require('../services/user-service.js');
+const { User } = require('../models/models.js');
 const authUtils = require('./auth-utils.js');
+const handleError = require('./error-handler.js');
 const {
     validator
 } = require('middy/middlewares');
+
+const userService = new UserService(User);
 
 function defineMiddlewareStack(controllerRoute, middlewares = []) {
     return middlewares.reduce((stack, middleware) => stack.use(middleware), middy(controllerRoute));
@@ -35,34 +40,31 @@ const errorHandler = () => ({
     }
 });
 
-const authentication = (userService) => ({
+const authentication = () => ({
     before: async (handler, next) => {
         let token = authUtils.getBearerToken(handler.event.headers);
         if (!token) {
-            return {
-                statusCode: 401,
-                body: JSON.stringify({
-                    message: 'No Authorization Header',
-                    entity: {
-                        valid: false
-                    }
-                })
-            };
+            return handler.callback(null, handleError(401, 'Unauthorized'))
         }
-        let decoded = tokenService.decode(token);
-        let body = {};
+
         try {
-            let suffix = await userService.getByJwt(decoded.jti);
+            let decoded = tokenService.decode(token);
+            let suffix = await userService.getByJwt(decoded.user.jwt);
             if (suffix) {
                 let secret = tokenService.getSecret(suffix);
-                body = tokenService.verify(token, secret);
-
+                let result = tokenService.verify(token, secret);
+                delete result.user.jwt;
+                delete result.user.jwtExpiration;
+                delete result.user.password;
+                handler.event.user = result.user;
                 next();
+                return;
             }
-            else body = { entity: { valid: false }, message: 'User logged out' };
         } catch (e) {
-            body = { entity: { valid: false }, message: e.message };
+            console.error("Authorization failure", e)
         }
+
+        return handler.callback(null, handleError(401, 'Unauthorized'))
     }
 })
 

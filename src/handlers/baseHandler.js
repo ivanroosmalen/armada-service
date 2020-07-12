@@ -1,6 +1,7 @@
 const {
     defineMiddlewareStack,
-    errorHandler
+    errorHandler,
+    authentication
 } = require('../utils/middleware.js');
 
 const BaseController = require('../controllers/base-controller.js');
@@ -42,12 +43,12 @@ const getHandler = ({ stackOptions = {}, controller, customRoutes = {} }, settin
     }
 
     let baseRoutes = {
-        create: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()],
-        batchCreate: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()],
-        list: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()],
-        update: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()],
+        create: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
+        batchCreate: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
+        update: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
+        delete: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
         get: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()],
-        delete: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()]
+        list: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()]
     };
 
     return createControllerRoutes(controller, Object.assign(baseRoutes, customRoutes));

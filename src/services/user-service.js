@@ -12,12 +12,12 @@ class UserService extends MongooseService {
       if(!entity) {
           throw new Error('Cannot create invalid entity');
       }
-
+      let pw = entity.password
       entity.password = bcrypt.hashSync(entity.password, settings.auth.saltRounds);
 
       let user = await this.schema.create(entity);
       delete user.password;
-      console.log("user %j", user.password)
+
       return user;
   };
 
@@ -46,23 +46,24 @@ class UserService extends MongooseService {
       return user;
   };
 
-  async list(id) {
-      return this.schema.find({}, { password:0, jwt: 0, jwtExpiration: 0 });
+  async list(query) {
+      return this.schema.find({}, { password:0, jwt: 0, jwtExpiration: 0 }, query);
   };
 
   async login(email, password) {
-      let user = await this.schema.find({email: email});
-      if(!user && !user.length) {
+      let user = await this.schema.findOne({email: email});
+      if(!user) {
           throw new Error('Bad credentials');
       }
 
-      let loggedIn = await bcrypt.compare(password, user[0].password);
+      let loggedIn = bcrypt.compareSync(password, user.password);
 
       if(!loggedIn) {
-          return null;
+          throw new Error('Bad credentials');
       }
 
-      return user[0];
+      delete user.password;
+      return user;
   };
 
   async getByJwt(jwt) {
@@ -70,7 +71,7 @@ class UserService extends MongooseService {
           throw new Error('Cannot find an entity without a token');
       }
 
-      let user = this.schema.find({ jwt: jwt });
+      let user = await this.schema.findOne({ jwt: jwt });
       return user.jwt;
   };
 

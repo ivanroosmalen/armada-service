@@ -15,8 +15,8 @@ if(!modelKeys || !modelKeys.length) {
       email: { type: String, required: true, index: true, unique: true },
       password: { type: String, required: true },
       alias: { type: String, index: true },
-      firstName: { type: String, required: true },
-      lastName: { type: String, required: true },
+      firstName: { type: String },
+      lastName: { type: String },
       jwt: { type: String },
       jwtExpiration: { type: Date },
       martialArts: [ {

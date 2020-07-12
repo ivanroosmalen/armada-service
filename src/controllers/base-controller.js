@@ -93,11 +93,13 @@ class BaseController {
         };
     };
 
-    async list() {
-        let entities;
+    async list(event) {
+        let query = this._getListQuery(event.queryStringParameters);
 
+        let entities;
         try {
-            entities = await this.service.list()
+            console.log("QUERY %j", query)
+            entities = await this.service.list(query)
         } catch(e) {
             return handleError(500, 'Unable to find entities', e);
         }
@@ -129,6 +131,22 @@ class BaseController {
             })
         };
     };
+
+    _getListQuery(queryParams) {
+        let query = {};
+        
+        if(queryParams) {
+            let pageSize = parseInt(queryParams.pageSize) || 20;
+            pageSize = pageSize < 1000 ? pageSize : 1000;
+            let page = parseInt(queryParams.page) || 0;
+            query.limit = pageSize;
+            query.skip = pageSize * page;
+
+            if(queryParams.sort) query.sort = queryParams.sort;
+        }
+
+        return query;
+    }
 }
 
 module.exports = BaseController

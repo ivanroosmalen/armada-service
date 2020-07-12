@@ -52,8 +52,8 @@ class MongooseService {
       return this.schema.findById(id);
   };
 
-  async list(id) {
-      return this.schema.find();
+  async list(query) {
+      return this.schema.find({}, {}, query);
   };
 
   async deleteById(id) {
