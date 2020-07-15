@@ -48,7 +48,7 @@ const getHandler = ({ stackOptions = {}, controller, customRoutes = {} }, settin
         update: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
         delete: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
         get: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()],
-        list: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()]
+        list: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors),authentication(),  errorHandler()]
     };
 
     return createControllerRoutes(controller, Object.assign(baseRoutes, customRoutes));

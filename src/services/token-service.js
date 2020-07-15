@@ -1,50 +1,66 @@
 const uuid = require('uuid/v1');
 const jwt = require('jsonwebtoken');
 const settings = require('../settings');
+const MongooseService = require('./mongoose-service');
 
-function createSecret() {
-    return `${settings.jwt.secret}${settings.jwt.delimiter}${uuid()}`;
-};
+class TokenService extends MongooseService {
 
-function getSecret(suffix) {
-    return `${settings.jwt.secret}${settings.jwt.delimiter}${suffix}`;
-};
+  constructor(schema) {
+      super(schema);
+  }
 
-function getSecretSuffix(secret) {
-    return secret.split(settings.jwt.delimiter)[1];
-};
+  createSecret() {
+      return `${settings.jwt.secret}${settings.jwt.delimiter}${uuid()}`;
+  };
 
-function createJti() {
-    return `${uuid()}`
-};
+  getSecret(suffix) {
+      return `${settings.jwt.secret}${settings.jwt.delimiter}${suffix}`;
+  };
 
+  getSecretSuffix(secret) {
+      return secret.split(settings.jwt.delimiter)[1];
+  };
 
-function sign(payload, secret, expiresIn=settings.jwt.exp) {
-    return jwt.sign(payload, new Buffer(secret, 'base64'), {expiresIn: expiresIn})
-};
+  createJti() {
+      return `${uuid()}`
+  };
 
-function verify(token, secret) {
-    try {
-        return jwt.verify(token, new Buffer(secret, 'base64'));
-    } catch (e) {
-        if (e instanceof jwt.TokenExpiredError || e instanceof jwt.JsonWebTokenError) {
-            throw new Error(e.message);
-        } else  {
-          throw new Error('unknown');
-        }
-    }
-};
+  sign(payload, secret, expiresIn=settings.jwt.exp) {
+      return jwt.sign(payload, new Buffer(secret, 'base64'), {expiresIn: expiresIn})
+  };
 
-function decode(token, complete=false) {
-    return jwt.decode(token, {complete: complete})
-};
+  verify(token, secret) {
+      try {
+          return jwt.verify(token, new Buffer(secret, 'base64'));
+      } catch (e) {
+          if (e instanceof jwt.TokenExpiredError || e instanceof jwt.JsonWebTokenError) {
+              throw new Error(e.message);
+          } else  {
+            throw new Error('unknown');
+          }
+      }
+  };
 
-module.exports = {
-    createSecret,
-    getSecret,
-    getSecretSuffix,
-    createJti,
-    sign,
-    verify,
-    decode
+  decode(token, complete=false) {
+      return jwt.decode(token, {complete: complete})
+  };
+
+  async getByJwt(suffix) {
+      if(!suffix) {
+          throw new Error('Cannot find an entity without a token');
+      }
+
+      return this.schema.findOne({ suffix });
+  };
+
+  async removeByJwt(suffix) {
+      if(!suffix) {
+          throw new Error('We are having trouble logging you out');
+      }
+
+      return this.schema.deleteOne({ suffix });
+  };
+
 }
+
+module.exports = TokenService;

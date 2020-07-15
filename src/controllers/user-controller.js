@@ -6,8 +6,18 @@ const settings = require('../settings.js');
 const moment = require('moment');
 
 class UserController extends BaseController {
-    constructor(service) {
-        super(service);
+    constructor(userService, tokenService) {
+        super(userService);
+
+        this.tokenService = tokenService;
+    }
+
+    cleanseUser(user) {
+        user.password = undefined;
+        user.jwt = undefined;
+        user.jwtExpiration = undefined;
+
+        return user;
     }
 
     async login(event) {
@@ -19,15 +29,34 @@ class UserController extends BaseController {
         try {
             let user = await this.service.login(event.body.email, event.body.password);
             entity.jwt = await this.generateJWT(user);
+            entity.user = this.cleanseUser(user);
         } catch(e) {
             return handleError(500, 'Unable to login', e);
         }
 
         return {
-            statusCode: 201,
+            statusCode: 200,
             body: JSON.stringify({
                 message: 'Logged in',
                 entity: entity
+            })
+        };
+    };
+
+    async logout(event) {
+        let token = authUtils.getBearerToken(event.headers);
+        if (!token) {
+            return;
+        }
+
+        let decoded = this.tokenService.decode(token);
+        await this.tokenService.removeByJwt(decoded.user.jwt);
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Logged out',
+                entity: {}
             })
         };
     };
@@ -54,18 +83,22 @@ class UserController extends BaseController {
     };
 
     async generateJWT(user) {
-        let secret = tokenService.createSecret();
+        let secret = this.tokenService.createSecret();
         let jwt = '';
         let payload = {
             user: user
         };
 
         try {
-            user.jwt = tokenService.getSecretSuffix(secret);
+            user.jwt = this.tokenService.getSecretSuffix(secret);
             user.jwtExpiration = moment().add(settings.jwt.exp);
 
-            await this.service.update(user._id, user)
-            jwt = tokenService.sign(payload, secret, settings.jwt.exp);
+            let jwtToken = {
+                user_id: user._id,
+                suffix: user.jwt
+            };
+            await this.tokenService.create(jwtToken);
+            jwt = this.tokenService.sign(payload, secret, settings.jwt.exp);
         } catch (e) {
             console.error(e);
         }

@@ -5,6 +5,7 @@ let modelKeys = Object.keys(mongoose.models);
 if(!modelKeys || !modelKeys.length) {
     let MartialArtSchema = new Schema({
         name: { type: String, required: true, index: true, unique: true },
+        subcategory: { type: String, unique: true },
         description: String,
         countryOfOrigin: String,
         icon: String,
@@ -19,15 +20,24 @@ if(!modelKeys || !modelKeys.length) {
       lastName: { type: String },
       jwt: { type: String },
       jwtExpiration: { type: Date },
+      admin: { type: Boolean },
       martialArts: [ {
           _id: String,
           name: String,
+          subcategory: String,
+          level: String,
+          startDate: Date,
           thumbnailImg: String,
           profileImg: String,
-          studentAcademies: {},
-          ownerAcademies: {}
+          studentAcademies: [],
+          ownerAcademies: []
       } ]
     });
+
+    let JwtTokenSchema = new Schema({
+        suffix: { type: String, required: true, index: true, unique: true },
+        user_id: { type: String, required: true },
+    })
 
     let LocationSchema = new Schema({
       address: { type: String },
@@ -41,11 +51,21 @@ if(!modelKeys || !modelKeys.length) {
     });
 
     let AcademySchema = new Schema({
-      owners: { type: [ UserSchema ], required: true, index: true },
+      owners: [ {
+        _id: { type: String },
+        email: { type: String },
+        alias: { type: String }
+      } ],
       name: { type: String, required: true, index: true },
-      martialArts: { type: [ MartialArtSchema ]},
+      martialArts: [ {
+        name: { type: String }
+      } ],
       locations: { type: [ LocationSchema ] },
-      students: { type: [ UserSchema ] },
+      students: [ {
+        _id: { type: String },
+        email: { type: String },
+        alias: { type: String }
+      } ],
       img: String
     });
 
@@ -114,6 +134,7 @@ if(!modelKeys || !modelKeys.length) {
     mongoose.model('Class', ClassSchema);
     mongoose.model('Event', EventSchema);
     mongoose.model('Location', LocationSchema);
+    mongoose.model('JwtToken', JwtTokenSchema);
 }
 
 module.exports = mongoose.models

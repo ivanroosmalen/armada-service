@@ -66,15 +66,6 @@ class UserService extends MongooseService {
       return user;
   };
 
-  async getByJwt(jwt) {
-      if(!jwt) {
-          throw new Error('Cannot find an entity without a token');
-      }
-
-      let user = await this.schema.findOne({ jwt: jwt });
-      return user.jwt;
-  };
-
   async getJwtToken(id) {
       if(!id) {
           throw new Error('Cannot find an entity without an id');

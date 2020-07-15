@@ -57,7 +57,7 @@ class BaseController {
         let entity;
         try {
             let id = event.pathParameters.id;
-            user = await this.service.update(id, event.body);
+            entity = await this.service.update(id, event.body);
         } catch(e) {
             return handleError(500, 'Unable to update entity', e);
         }
@@ -98,7 +98,6 @@ class BaseController {
 
         let entities;
         try {
-            console.log("QUERY %j", query)
             entities = await this.service.list(query)
         } catch(e) {
             return handleError(500, 'Unable to find entities', e);
@@ -134,7 +133,7 @@ class BaseController {
 
     _getListQuery(queryParams) {
         let query = {};
-        
+
         if(queryParams) {
             let pageSize = parseInt(queryParams.pageSize) || 20;
             pageSize = pageSize < 1000 ? pageSize : 1000;

@@ -49,6 +49,12 @@ functions:
       - http:
           path: ${self:custom.users.path}/login
           method: post
+  logout:
+    handler: ${self:custom.users.handler}.logout
+    events:
+      - http:
+          path: ${self:custom.users.path}/logout
+          method: get
   createUser:
     handler: ${self:custom.users.handler}.create
     events:
