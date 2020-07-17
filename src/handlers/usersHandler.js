@@ -4,7 +4,7 @@ const { getHandler } = require('./baseHandler.js');
 const UserService = require('../services/user-service.js');
 const UserController = require('../controllers/user-controller.js');
 const TokenService = require('../services/token-service.js');
-const { errorHandler } = require('../utils/middleware.js');
+const { errorHandler, authentication } = require('../utils/middleware.js');
 const { jsonBodyParser, doNotWaitForEmptyEventLoop, cors, httpHeaderNormalizer } = require('middy/middlewares');
 
 const handler = getHandler({
@@ -16,7 +16,8 @@ const handler = getHandler({
     customRoutes: {
         register: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()],
         login: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()],
-        logout: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()]
+        logout: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()],
+        uploadImage: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
     }
 }, settings);
 

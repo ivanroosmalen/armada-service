@@ -35,8 +35,15 @@ provider:
   name: aws
   runtime: nodejs10.x
   environment: ${file(./serverless.env.yml):${opt:stage, 'dev'}}
+  role: arn:aws:iam::302314551855:role/Armada
 
 functions:
+  uploadImage:
+    handler: ${self:custom.users.handler}.uploadImage
+    events:
+      - http:
+          path: ${self:custom.users.path}/{id}/{type}
+          method: post
   register:
     handler: ${self:custom.users.handler}.register
     events:

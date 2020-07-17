@@ -4,6 +4,9 @@ const authUtils = require('../utils/auth-utils.js');
 const { handleError } = require('../utils/error-handler.js');
 const settings = require('../settings.js');
 const moment = require('moment');
+const { v4: uuidv4 } = require('uuid');
+const AWS = require('aws-sdk');
+var s3 = new AWS.S3();
 
 class UserController extends BaseController {
     constructor(userService, tokenService) {
@@ -103,6 +106,48 @@ class UserController extends BaseController {
             console.error(e);
         }
         return jwt;
+    }
+
+    async uploadImage(event) {
+        if(!event || !event.body || !event.pathParameters || !event.pathParameters.id) {
+            return handleError(400, 'You need to pass entity info to update an entity');
+        }
+
+        let entity
+        let { id, type } = event.pathParameters;
+        try {
+            entity = await this.service.findById(id);
+        } catch(e) {
+            return handleError(500, 'Unable to find entity', e);
+        }
+
+        let uploadURL = ''
+        try {
+          let s3Params = {
+              Bucket: 'armada-user-images',
+              Key: `${id}/${type}/${uuidv4()}` ,
+              ACL: 'public-read',
+          };
+          uploadURL = await s3.getSignedUrl('putObject', s3Params);
+
+          if(type === 'profile') {
+              entity.profileImg = uploadURL.split('?')[0];
+          } else if(type === 'thumbnail') {
+              entity.thumbnailImg = uploadURL.split('?')[0];
+          }
+
+          await this.service.update(id, entity);
+        } catch(e) {
+          return handleError(500, 'Unable to get image URL', e);
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Entity created',
+                entity: uploadURL
+            })
+        };
     }
 }
 

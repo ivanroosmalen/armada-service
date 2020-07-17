@@ -18,6 +18,8 @@ if(!modelKeys || !modelKeys.length) {
       alias: { type: String, index: true },
       firstName: { type: String },
       lastName: { type: String },
+      thumbnailImg: String,
+      profileImg: String,
       jwt: { type: String },
       jwtExpiration: { type: Date },
       admin: { type: Boolean },
@@ -27,8 +29,6 @@ if(!modelKeys || !modelKeys.length) {
           subcategory: String,
           level: String,
           startDate: Date,
-          thumbnailImg: String,
-          profileImg: String,
           studentAcademies: [],
           ownerAcademies: []
       } ]
