@@ -8,6 +8,19 @@ class UserService extends MongooseService {
       super(schema);
   }
 
+  getExceptions() {
+      return {
+         password:0,
+         jwt: 0,
+         jwtExpiration: 0,
+         admin: 0,
+         emailVerificationToken: 0,
+         emailExpiration: 0,
+         verified: 0,
+         forgotPassword: 0
+      };
+  }
+
   async create(entity) {
       if(!entity) {
           throw new Error('Cannot create invalid entity');
@@ -17,6 +30,13 @@ class UserService extends MongooseService {
 
       let user = await this.schema.create(entity);
       delete user.password;
+      delete user.admin;
+      delete user.jwt;
+      delete user.jwtExpiration;
+      delete user.emailVerificationToken;
+      delete user.emailExpiration;
+      delete user.verified;
+      delete user.forgotPassword;
 
       return user;
   };
@@ -32,7 +52,7 @@ class UserService extends MongooseService {
 
       entity.lastUpdatedDate = new Date();
 
-      let user = this.schema.findByIdAndUpdate(id, entity, {new: true});
+      let user = await this.schema.findByIdAndUpdate(id, entity, {new: true});
       user.password = undefined;
       return user;
   };
@@ -42,18 +62,25 @@ class UserService extends MongooseService {
           throw new Error('Cannot find an entity without an id');
       }
 
-      let user = this.schema.findById(id, { password:0, jwt: 0, jwtExpiration: 0 });
-      return user;
+      return this.schema.findById(id, getExceptions());
+  };
+
+  async findOneByParams(query) {
+      return this.schema.findOne(query);
   };
 
   async list(query) {
-      return this.schema.find({}, { password:0, jwt: 0, jwtExpiration: 0 }, query);
+      return this.schema.find({}, getExceptions(), query);
   };
 
   async login(email, password) {
       let user = await this.schema.findOne({email: email});
       if(!user) {
           throw new Error('Bad credentials');
+      }
+
+      if(!user.verified) {
+          throw new Error('User is not verified');
       }
 
       let loggedIn = bcrypt.compareSync(password, user.password);
@@ -71,7 +98,7 @@ class UserService extends MongooseService {
           throw new Error('Cannot find an entity without an id');
       }
 
-      let user = this.schema.findById(id, { jwt: 1 });
+      let user = await this.schema.findById(id, { jwt: 1 });
       return user.jwt;
   };
 

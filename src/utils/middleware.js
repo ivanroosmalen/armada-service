@@ -41,28 +41,28 @@ const errorHandler = () => ({
 
 const authentication = () => ({
     before: async (handler, next) => {
-        // let token = authUtils.getBearerToken(handler.event.headers);
-        // if (!token) {
-        //     return handler.callback(null, handleError(401, 'Unauthorized'))
-        // }
+        let token = authUtils.getBearerToken(handler.event.headers);
+        if (!token) {
+            return handler.callback(null, handleError(401, 'Unauthorized'))
+        }
 
-        // try {
-            // let decoded = tokenService.decode(token);
-            // let jwt = await tokenService.getByJwt(decoded.user.jwt);
-            // if (jwt.suffix) {
-            //     let secret = tokenService.getSecret(jwt.suffix);
-            //     let result = tokenService.verify(token, secret);
-            //
-            //     delete result.user.jwt;
-            //     delete result.user.jwtExpiration;
-            //     delete result.user.password;
-            //     handler.event.user = result.user;
-                next();
+        try {
+            let decoded = tokenService.decode(token);
+            let jwt = await tokenService.getByJwt(decoded.user.jwt);
+            if (jwt.suffix) {
+                let secret = tokenService.getSecret(jwt.suffix);
+                let result = tokenService.verify(token, secret);
+
+                delete result.user.jwt;
+                delete result.user.jwtExpiration;
+                delete result.user.password;
+                handler.event.user = result.user;
+
                 return;
-        //     }
-        // } catch (e) {
-        //     console.error("Authorization failure", e)
-        // }
+            }
+        } catch (e) {
+            console.error("Authorization failure", e)
+        }
 
         return handler.callback(null, handleError(401, 'Unauthorized'))
     }

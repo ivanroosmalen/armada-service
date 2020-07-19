@@ -22,6 +22,10 @@ if(!modelKeys || !modelKeys.length) {
       profileImg: String,
       jwt: { type: String },
       jwtExpiration: { type: Date },
+      emailVerificationToken: String,
+      emailExpiration: Date,
+      verified: Boolean,
+      passwordResetValid: Boolean,
       admin: { type: Boolean },
       martialArts: [ {
           _id: String,

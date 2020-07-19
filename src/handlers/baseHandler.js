@@ -15,7 +15,6 @@ const createControllerRoutes = (controller, routeDefinitions) => {
     let routes = {};
     Object.entries(routeDefinitions).forEach(([route, middlewares]) =>
         routes[route] = defineMiddlewareStack(controller[route].bind(controller), middlewares));
-
     return routes;
 };
 

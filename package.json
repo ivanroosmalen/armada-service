@@ -16,11 +16,13 @@
     "aws-sdk": "^2.714.2",
     "bcrypt": "^3.0.6",
     "dotenv": "^8.0.0",
+    "fs": "^0.0.1-security",
     "http-errors": "^1.7.3",
     "jsonwebtoken": "^8.5.1",
     "middy": "^0.28.4",
-    "moment": "^2.24.0",
+    "moment": "^2.27.0",
     "mongoose": "^5.6.4",
+    "mustache": "^4.0.1",
     "uuid": "^8.2.0"
   }
 }
