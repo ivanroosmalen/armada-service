@@ -50,18 +50,6 @@ functions:
       - http:
           path: ${self:custom.users.path}/register
           method: post
-  verify:
-    handler: ${self:custom.users.handler}.verify
-    events:
-      - http:
-          path: ${self:custom.users.path}/verify/{id}
-          method: get
-  resendVerification:
-    handler: ${self:custom.users.handler}.resendVerification
-    events:
-      - http:
-          path: ${self:custom.users.path}/resendVerification
-          method: post
   forgotPassword:
     handler: ${self:custom.users.handler}.forgotPassword
     events:
@@ -72,7 +60,7 @@ functions:
     handler: ${self:custom.users.handler}.updatePassword
     events:
       - http:
-          path: ${self:custom.users.path}/updatePassword
+          path: ${self:custom.users.path}/updatePassword/{id}
           method: patch
   login:
     handler: ${self:custom.users.handler}.login

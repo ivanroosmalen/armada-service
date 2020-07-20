@@ -42,19 +42,16 @@ function sendEmail(email, type = 'text', subject, body) {
   return new AWS.SES({apiVersion: '2010-12-01'}).sendEmail(params).promise();
 }
 
-async function sendRegistrationEmail(email, link) {
+async function sendRegistrationEmail(email, password) {
   let file = await fs.readFileSync('./src/emailTemplates/registration.html', "utf8");
-  let body = mustache.render(file, { link })
-
+  let body = mustache.render(file, { password })
   return sendEmail(email, 'html', 'Welcome to Armada!', body)
 }
 
 async function sendForgotPasswordEmail(email, password) {
-  let link = 'login link';
   let file = await fs.readFileSync('./src/emailTemplates/forgotPassword.html', "utf8");
-  let body = mustache.render(file, { link, password })
-  console.log("COOL", body)
-  return sendEmail(email, 'html', 'Armamda - Password reset', body)
+  let body = mustache.render(file, { password })
+  return sendEmail(email, 'html', 'Armada - Password reset', body)
 }
 
 module.exports = {

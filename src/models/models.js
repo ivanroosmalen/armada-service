@@ -25,7 +25,6 @@ if(!modelKeys || !modelKeys.length) {
       emailVerificationToken: String,
       emailExpiration: Date,
       verified: Boolean,
-      passwordResetValid: Boolean,
       admin: { type: Boolean },
       martialArts: [ {
           _id: String,

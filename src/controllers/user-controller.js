@@ -16,7 +16,7 @@ class UserController extends BaseController {
         this.tokenService = tokenService;
     }
 
-    cleanseUser(user) {
+    cleanseUserResponse(user) {
         user.password = undefined;
         user.jwt = undefined;
         user.jwtExpiration = undefined;
@@ -28,7 +28,7 @@ class UserController extends BaseController {
         return user;
     }
 
-    cleanseUserUpdate(user) {
+    cleanseUserPreSave(user) {
         user.jwt = undefined;
         user.jwtExpiration = undefined;
         user.admin = undefined;
@@ -39,23 +39,35 @@ class UserController extends BaseController {
         return user;
     }
 
-    async create(event) {};
+    async create(event) {
+      if(!event.user.admin === true) {
+          return handleError(400, 'Unauthorized');
+      }
 
-    async batchCreate(event) {};
+      super.create();
+    };
+
+    async batchCreate(event) {
+      if(!event.user.admin === true) {
+          return handleError(400, 'Unauthorized');
+      }
+
+      super.create();
+    };
 
     async update(event) {
       if(!event || !event.body || !event.pathParameters || !event.pathParameters.id) {
           return handleError(400, 'You need to pass entity info to update an entity');
       }
 
-      if(event.user._id !== event.user._id) {
+      if(event.user._id !== event.user._id && !event.user.admin === true) {
           return handleError(400, 'Unauthorized');
       }
 
       let entity;
       try {
           let id = event.pathParameters.id;
-          entity = await this.service.update(id, cleanseUserUpdate(event.body));
+          entity = await this.service.update(id, this.cleanseUserPreSave(event.body));
       } catch(e) {
           return handleError(500, 'Unable to update entity', e);
       }
@@ -64,7 +76,7 @@ class UserController extends BaseController {
           statusCode: 200,
           body: JSON.stringify({
               message: 'Entity updated',
-              entity
+              entity: this.cleanseUserResponse(entity)
           })
       };
     };
@@ -78,7 +90,7 @@ class UserController extends BaseController {
         try {
             let user = await this.service.login(event.body.email, event.body.password);
             entity.jwt = await this.generateJWT(user);
-            entity.user = this.cleanseUser(user);
+            entity.user = this.cleanseUserResponse(user);
         } catch(e) {
             return handleError(400, 'Unable to login', e);
         }
@@ -111,88 +123,40 @@ class UserController extends BaseController {
     };
 
     async register(event) {
-        if(!event || !event.body) {
+        if(!event || !event.body || !event.body.email) {
             return handleError(400, 'You need to pass a valid object');
         }
 
         let entity;
+        let body = event.body;
         try {
-            let body = event.body;
+            let user = await this.service.findOneByParams({ email: body.email });
+            if(user) {
+                return handleError(500, 'User with this email already exists');
+            }
+
             body.emailVerificationToken = uuidv4();
             body.emailExpiration = moment().add(1, 'hours');
             body.verified = false;
-            entity = await this.service.create(event.body);
-        } catch(e) {
-            return handleError(500, 'Unable to create entity', e);
-        }
+            body.admin = false
 
-        //TODO determine app url
-        emailService.sendRegistrationEmail(event.body.email);
+            let newPassword = Math.floor(1000 + Math.random() * 9000);
+            body.password = bcrypt.hashSync(newPassword.toString(), settings.auth.saltRounds);
+
+            entity = await this.service.create(body);
+            await emailService.sendRegistrationEmail(body.email, newPassword);
+        } catch(e) {
+            return handleError(500, 'Unable to register', e);
+        }
 
         return {
             statusCode: 201,
             body: JSON.stringify({
                 message: 'Entity created',
-                entity: cleanseUser(entity)
+                entity: this.cleanseUserResponse(entity)
             })
         };
     };
-
-    async verify(event) {
-        if(!event || !event.pathParameters || !event.pathParameters.id) {
-            return handleError(400, 'Cannot verify this account');
-        }
-
-
-        let user = this.service.findOneByParams({ emailVerificationToken: event.pathParameters.id });
-
-        if(user.verified) {
-            return handleError(400, 'User is already verified');
-        }
-
-        if(moment(user.emailExpiration) < moment()) {
-            return handleError(400, 'Verification token has expired');
-        }
-
-        user.verified = true;
-
-        let user = await this.service.update(user._id, user);
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                message: 'User verified',
-                entity: cleanseUser(user)
-            })
-        };
-    }
-
-    async resendVerification(event) {
-        if(!event || !event.body || !event.body.email) {
-            return handleError(400, 'Cannot send email');
-        }
-
-        let user = this.service.findOneByParams({ email: event.body.email });
-
-        if(user.verified) {
-          return handleError(400, 'User is already verified');
-        }
-
-        user.emailVerificationToken = uuidv4();
-        user.emailExpiration = moment().add(1, 'hours');
-        user.verified = false;
-
-        this.service.update(user._id, user);
-        emailService.sendRegistrationEmail(user.email, user.emailVerificationToken);
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                message: 'Resent verification token',
-                entity: {}
-            })
-        };
-    }
 
     async forgotPassword(event) {
         if(!event || !event.body || !event.body.email) {
@@ -216,23 +180,28 @@ class UserController extends BaseController {
     }
 
     async updatePassword(event) {
-        if(!event || !event.body || !event.body.oldPassword || !event.body.newPassword || !event.pathParameters || !event.pathParameters.id) {
+        if(!event || !event.body || !event.body.newPassword || !event.pathParameters || !event.pathParameters.id) {
             return handleError(400, 'Cannot send email');
         }
 
-        if(event.user._id !== event.pathParameters.id) {
+        let id = event.pathParameters.id;
+        let { newPassword, oldPassword } = event.body;
+
+        if(event.user._id !== id && !event.user.admin) {
             return handleError(401, 'Unauthorized');
         }
 
-        let user = await this.service.findById(event.pathParameters.id);
+        let user = await this.service.findById(id, true);
+        if(!event.user.admin) {
+            let oldPasswordCorrect = await bcrypt.compareSync(oldPassword, user.password);
 
-        let oldPasswordCorrect = bcrypt.compareSync(event.body.oldPassword, user.password);
-        if(!oldPasswordCorrect) {
-            return handleError(400, 'Previous password is incorrect');
+            if(!oldPasswordCorrect) {
+                return handleError(400, 'Previous password is incorrect');
+            }
         }
 
-        user.password = bcrypt.hashSync(event.body.newPassword, settings.auth.saltRounds);
-        await this.service.update(user._id, user);
+        user.password = await bcrypt.hashSync(newPassword, settings.auth.saltRounds);
+        let res = await this.service.update(id, user);
 
         return {
             statusCode: 200,

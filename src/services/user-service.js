@@ -25,8 +25,7 @@ class UserService extends MongooseService {
       if(!entity) {
           throw new Error('Cannot create invalid entity');
       }
-      let pw = entity.password
-      entity.password = bcrypt.hashSync(entity.password, settings.auth.saltRounds);
+      entity.admin = false;
 
       let user = await this.schema.create(entity);
       delete user.password;
@@ -57,12 +56,12 @@ class UserService extends MongooseService {
       return user;
   };
 
-  async findById(id) {
+  async findById(id, complete = false) {
       if(!id) {
           throw new Error('Cannot find an entity without an id');
       }
 
-      return this.schema.findById(id, getExceptions());
+      return this.schema.findById(id, complete ? {} : this.getExceptions());
   };
 
   async findOneByParams(query) {
@@ -70,17 +69,13 @@ class UserService extends MongooseService {
   };
 
   async list(query) {
-      return this.schema.find({}, getExceptions(), query);
+      return this.schema.find({}, this.getExceptions(), query);
   };
 
   async login(email, password) {
       let user = await this.schema.findOne({email: email});
       if(!user) {
           throw new Error('Bad credentials');
-      }
-
-      if(!user.verified) {
-          throw new Error('User is not verified');
       }
 
       let loggedIn = bcrypt.compareSync(password, user.password);
