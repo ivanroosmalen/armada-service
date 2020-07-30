@@ -1,5 +1,7 @@
-let mongoose = require('mongoose');
-let Schema = mongoose.Schema;
+const GeoJSON = require('mongoose-geojson-schema');
+const mongoose = require('mongoose');
+
+const Schema = mongoose.Schema;
 
 let modelKeys = Object.keys(mongoose.models);
 if(!modelKeys || !modelKeys.length) {
@@ -32,8 +34,9 @@ if(!modelKeys || !modelKeys.length) {
           subcategory: String,
           level: String,
           startDate: Date,
-          studentAcademies: [],
-          ownerAcademies: []
+          // studentAcademies: [],
+          // ownerAcademies: [],
+          // instructorAcademies: []
       } ]
     });
 
@@ -42,34 +45,42 @@ if(!modelKeys || !modelKeys.length) {
         user_id: { type: String, required: true },
     })
 
+    let entityType = [ 'academy', 'event', 'class' ];
     let LocationSchema = new Schema({
       address: { type: String },
-      address2: { type: String },
-      zipCode: { type: String },
-      city: { type: String },
-      stateRegion: { type: String },
-      country: { type: String },
-      lat: { type: String },
-      lon: { type: String }
+      placeId: { type: String },
+      url: { type: String },
+      geo: mongoose.Schema.Types.Point,
+      type: { type: String },
+      entityType: { type: String, enum: entityType  },
+      entityId: { type: String }
     });
 
     let AcademySchema = new Schema({
       owners: [ {
         _id: { type: String },
         email: { type: String },
-        alias: { type: String }
+        alias: { type: String },
+        thumbnailImg: { type: String }
+      } ],
+      instructors: [ {
+        _id: { type: String },
+        email: { type: String },
+        alias: { type: String },
+        thumbnailImg: { type: String }
+      } ],
+      students: [ {
+        _id: { type: String },
+        email: { type: String },
+        alias: { type: String },
+        thumbnailImg: { type: String }
       } ],
       name: { type: String, required: true, index: true },
       martialArts: [ {
         name: { type: String }
       } ],
       locations: { type: [ LocationSchema ] },
-      students: [ {
-        _id: { type: String },
-        email: { type: String },
-        alias: { type: String }
-      } ],
-      img: String
+      profileImg: String
     });
 
     let SchoolSchema = new Schema({

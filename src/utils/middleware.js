@@ -21,7 +21,7 @@ function handlerAssert(value) {
 
 const errorHandler = () => ({
     onError: (handler, next) => {
-        if (handler.error instanceof HttpError) {
+        if (handler.error) {
             handler.response = {
                 body: JSON.stringify({
                     errors: [{
@@ -57,7 +57,6 @@ const authentication = () => ({
                 delete result.user.jwtExpiration;
                 delete result.user.password;
                 handler.event.user = result.user;
-
                 return;
             }
         } catch (e) {

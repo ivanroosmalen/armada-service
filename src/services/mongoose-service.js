@@ -17,7 +17,7 @@ class MongooseService {
           throw new Error('Cannot create invalid entity');
       }
 
-      let result = await this.model.insertMany(entities, { ordered: false, rawResult: true });
+      let result = await this.schema.insertMany(entities, { ordered: false, rawResult: true });
 
       if (result.mongoose && result.mongoose.validationErrors && result.mongoose.validationErrors.length) {
           throw new Error(result.mongoose.validationErrors);
@@ -52,8 +52,8 @@ class MongooseService {
       return this.schema.findById(id);
   };
 
-  async list(query) {
-      return this.schema.find({}, {}, query);
+  async list(query, params) {
+      return this.schema.find(query, {}, params);
   };
 
   async deleteById(id) {

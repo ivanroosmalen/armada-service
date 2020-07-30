@@ -68,8 +68,8 @@ class UserService extends MongooseService {
       return this.schema.findOne(query);
   };
 
-  async list(query) {
-      return this.schema.find({}, this.getExceptions(), query);
+  async list(query, params) {
+      return this.schema.find(query, this.getExceptions(), params);
   };
 
   async login(email, password) {

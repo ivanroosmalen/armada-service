@@ -40,7 +40,7 @@ class UserController extends BaseController {
     }
 
     async create(event) {
-      if(!event.user.admin === true) {
+      if(event.user.admin !== true) {
           return handleError(400, 'Unauthorized');
       }
 
@@ -48,11 +48,19 @@ class UserController extends BaseController {
     };
 
     async batchCreate(event) {
-      if(!event.user.admin === true) {
+      if(event.user.admin !== true) {
           return handleError(400, 'Unauthorized');
       }
 
-      super.create();
+      super.batchCreate();
+    };
+
+    async delete(event) {
+        if(event.user.admin !== true) {
+          return handleError(400, 'Unauthorized');
+        }
+
+        super.delete(event);
     };
 
     async update(event) {
@@ -252,7 +260,7 @@ class UserController extends BaseController {
         try {
           let s3Params = {
               Bucket: 'armada-user-images',
-              Key: `${id}/${type}/${uuidv4()}` ,
+              Key: `${id}/${type}/${uuidv4()}`,
               ContentType: event.body.contentType,
               ACL: 'public-read'
           };

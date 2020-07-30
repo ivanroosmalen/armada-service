@@ -94,11 +94,11 @@ class BaseController {
     };
 
     async list(event) {
-        let query = this._getListQuery(event.queryStringParameters);
+        let params = this._getListQuery(event.queryStringParameters);
 
         let entities;
         try {
-            entities = await this.service.list(query)
+            entities = await this.service.list({}, params)
         } catch(e) {
             return handleError(500, 'Unable to find entities', e);
         }

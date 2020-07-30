@@ -14,6 +14,9 @@ custom:
   academies:
     handler: src/handlers/academiesHandler
     path: ${self:custom.version}/academies
+  locations:
+    handler: src/handlers/locationsHandler
+    path: ${self:custom.version}/locations
   cors:
     origins:
       - 'http://localhost*'
@@ -38,7 +41,7 @@ provider:
   role: arn:aws:iam::302314551855:role/Armada
 
 functions:
-  uploadImage:
+  uploadUserImage:
     handler: ${self:custom.users.handler}.uploadImage
     events:
       - http:
@@ -242,6 +245,12 @@ functions:
             parameters:
               paths:
                 id: true
+  uploadAcademyImage:
+    handler: ${self:custom.academies.handler}.uploadImage
+    events:
+      - http:
+          path: ${self:custom.academies.path}/{id}/{type}
+          method: post
   createAcademies:
     handler: ${self:custom.academies.handler}.create
     events:
@@ -284,6 +293,57 @@ functions:
             parameters:
               paths:
                 id: true
-
+  getUserAcademies:
+    handler: ${self:custom.academies.handler}.getUserAcademies
+    events:
+      - http:
+          path: ${self:custom.academies.path}/byUser/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  createLocations:
+    handler: ${self:custom.locations.handler}.create
+    events:
+      - http:
+          path: ${self:custom.locations.path}
+          method: post
+  updateLocations:
+    handler: ${self:custom.locations.handler}.update
+    events:
+      - http:
+          path: ${self:custom.locations.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getLocations:
+    handler: ${self:custom.locations.handler}.get
+    events:
+      - http:
+          path: ${self:custom.locations.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listLocations:
+    handler: ${self:custom.locations.handler}.list
+    events:
+      - http:
+          path: ${self:custom.locations.path}
+          method: get
+  deleteLocations:
+    handler: ${self:custom.locations.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.locations.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
 plugins:
   - serverless-offline

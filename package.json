@@ -22,6 +22,7 @@
     "middy": "^0.28.4",
     "moment": "^2.27.0",
     "mongoose": "^5.6.4",
+    "mongoose-geojson-schema": "^2.1.5",
     "mustache": "^4.0.1",
     "uuid": "^8.2.0"
   }
