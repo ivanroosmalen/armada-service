@@ -17,6 +17,12 @@ custom:
   locations:
     handler: src/handlers/locationsHandler
     path: ${self:custom.version}/locations
+  scheduleItems:
+    handler: src/handlers/scheduleItemsHandler
+    path: ${self:custom.version}/scheduleItems
+  classes:
+    handler: src/handlers/classesHandler
+    path: ${self:custom.version}/classes
   cors:
     origins:
       - 'http://localhost*'
@@ -203,48 +209,6 @@ functions:
             parameters:
               paths:
                 id: true
-  createClasses:
-    handler: handlers/classesHandler.create
-    events:
-      - http:
-          path: classes
-          method: post
-  updateClasses:
-    handler: handlers/classesHandler.update
-    events:
-      - http:
-          path: classes/{id}
-          method: put
-          request:
-            parameters:
-              paths:
-                id: true
-  getClasses:
-    handler: handlers/classesHandler.get
-    events:
-      - http:
-          path: classes/{id}
-          method: get
-          request:
-            parameters:
-              paths:
-                id: true
-  listClasses:
-    handler: handlers/classesHandler.list
-    events:
-      - http:
-          path: classes
-          method: get
-  deleteClasses:
-    handler: handlers/classesHandler.delete
-    events:
-      - http:
-          path: classes/{id}
-          method: delete
-          request:
-            parameters:
-              paths:
-                id: true
   uploadAcademyImage:
     handler: ${self:custom.academies.handler}.uploadImage
     events:
@@ -340,6 +304,102 @@ functions:
     events:
       - http:
           path: ${self:custom.locations.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  createScheduleItems:
+    handler: ${self:custom.scheduleItems.handler}.create
+    events:
+      - http:
+          path: ${self:custom.scheduleItems.path}
+          method: post
+  updateScheduleItems:
+    handler: ${self:custom.scheduleItems.handler}.update
+    events:
+      - http:
+          path: ${self:custom.scheduleItems.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getScheduleItems:
+    handler: ${self:custom.scheduleItems.handler}.get
+    events:
+      - http:
+          path: ${self:custom.scheduleItems.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listScheduleItems:
+    handler: ${self:custom.scheduleItems.handler}.list
+    events:
+      - http:
+          path: ${self:custom.scheduleItems.path}
+          method: get
+  deleteScheduleItems:
+    handler: ${self:custom.scheduleItems.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.scheduleItems.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  createClasses:
+    handler: ${self:custom.classes.handler}.create
+    events:
+      - http:
+          path: ${self:custom.classes.path}
+          method: post
+  attendClasses:
+    handler: ${self:custom.classes.handler}.attend
+    events:
+      - http:
+          path: ${self:custom.classes.path}/attend
+          method: patch
+  unattendClasses:
+    handler: ${self:custom.classes.handler}.unattend
+    events:
+      - http:
+          path: ${self:custom.classes.path}/unattend
+          method: patch
+  updateClasses:
+    handler: ${self:custom.classes.handler}.update
+    events:
+      - http:
+          path: ${self:custom.classes.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getClasses:
+    handler: ${self:custom.classes.handler}.get
+    events:
+      - http:
+          path: ${self:custom.classes.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listClasses:
+    handler: ${self:custom.classes.handler}.list
+    events:
+      - http:
+          path: ${self:custom.classes.path}
+          method: get
+  deleteClasses:
+    handler: ${self:custom.classes.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.classes.path}/{id}
           method: delete
           request:
             parameters:

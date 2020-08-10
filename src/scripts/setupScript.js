@@ -20,13 +20,3 @@ async function setupAdmin() {
 }
 
 setupAdmin();
-//
-// async function checkTokens() {
-//   await mongoose.connect('mongodb+srv://root:root@vanroosmalen-xvrlb.mongodb.net/test?retryWrites=true&w=majority', {useNewUrlParser: true});
-//
-//   let tokens = await JwtToken.find({jwt: '3e72daf0-c9f0-11ea-bac6-1b958d10732b'})
-//   console.log(tokens)
-//
-// }
-//
-// checkTokens();

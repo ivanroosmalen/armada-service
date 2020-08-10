@@ -47,6 +47,7 @@ if(!modelKeys || !modelKeys.length) {
 
     let entityType = [ 'academy', 'event', 'class' ];
     let LocationSchema = new Schema({
+      _id: { type: String },
       address: { type: String },
       placeId: { type: String },
       url: { type: String },
@@ -95,37 +96,38 @@ if(!modelKeys || !modelKeys.length) {
       name: { type: String, required: true, index: true }
     });
 
-    let daysOfWeek = [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ];
+    let interval = [ 'daily', 'weekly', 'monthly' ];
     let scheduleEntity = [ 'class', 'event' ];
     let ScheduleSchema = new Schema({
-      name: String,
-      description: String,
       startDate: { type: Date, required: true, index: true },
       endDate: { type: Date, required: true, index: true },
       recurring: Boolean,
-      recurringUntil: { type: Date, index: true },
-      recurringParent: String,
-      daily: Boolean,
-      weekly: Boolean,
-      daysOfWeek: { type: [String], enum: daysOfWeek },
-      entity: {
-        type: { type: String, enum: scheduleEntity },
-        _id: { type: String },
-        academyId: String
-      },
-      excludes: [String]
+      interval: { type: String, enum: interval },
+      excludes: [Date]
     });
 
     let ClassSchema = new Schema({
       academyId: { type: String },
+      name: { type: String },
+      description: { type: String },
+      martialArt: { type: String },
+      parentId: { type: String },
       location: { type: LocationSchema },
-      attendees: {
+      instructors: [{
         _id: String,
         alias: String,
         firstName: String,
         lastName: String,
         thumbnailImg: String
-      }
+      }],
+      attendees: [{
+        _id: String,
+        alias: String,
+        firstName: String,
+        lastName: String,
+        thumbnailImg: String
+      }],
+      schedule: { type: ScheduleSchema }
     });
 
     let EventSchema = new Schema({
@@ -144,7 +146,6 @@ if(!modelKeys || !modelKeys.length) {
     mongoose.model('User', UserSchema);
     mongoose.model('Academy', AcademySchema);
     mongoose.model('School', SchoolSchema);
-    mongoose.model('Schedule', ScheduleSchema);
     mongoose.model('Class', ClassSchema);
     mongoose.model('Event', EventSchema);
     mongoose.model('Location', LocationSchema);
