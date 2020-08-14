@@ -33,10 +33,7 @@ if(!modelKeys || !modelKeys.length) {
           name: String,
           subcategory: String,
           level: String,
-          startDate: Date,
-          // studentAcademies: [],
-          // ownerAcademies: [],
-          // instructorAcademies: []
+          startDate: Date
       } ]
     });
 
@@ -51,10 +48,7 @@ if(!modelKeys || !modelKeys.length) {
       address: { type: String },
       placeId: { type: String },
       url: { type: String },
-      geo: mongoose.Schema.Types.Point,
-      type: { type: String },
-      entityType: { type: String, enum: entityType  },
-      entityId: { type: String }
+      geo: mongoose.Schema.Types.Point
     });
 
     let AcademySchema = new Schema({
@@ -97,7 +91,6 @@ if(!modelKeys || !modelKeys.length) {
     });
 
     let interval = [ 'daily', 'weekly', 'monthly' ];
-    let scheduleEntity = [ 'class', 'event' ];
     let ScheduleSchema = new Schema({
       startDate: { type: Date, required: true, index: true },
       endDate: { type: Date, required: true, index: true },
@@ -127,6 +120,7 @@ if(!modelKeys || !modelKeys.length) {
         lastName: String,
         thumbnailImg: String
       }],
+      classSize: { type: Number },
       schedule: { type: ScheduleSchema }
     });
 
@@ -142,6 +136,20 @@ if(!modelKeys || !modelKeys.length) {
       }
     });
 
+    let AcademyRequestSchema = new Schema({
+      academyId: { type: String },
+      user: {
+        _id: String,
+        alias: String,
+        firstName: String,
+        lastName: String,
+        thumbnailImg: String
+      },
+      approved: Boolean,
+      complete: Boolean
+    });
+
+
     mongoose.model('MartialArt', MartialArtSchema);
     mongoose.model('User', UserSchema);
     mongoose.model('Academy', AcademySchema);
@@ -150,6 +158,7 @@ if(!modelKeys || !modelKeys.length) {
     mongoose.model('Event', EventSchema);
     mongoose.model('Location', LocationSchema);
     mongoose.model('JwtToken', JwtTokenSchema);
+    mongoose.model('AcademyRequest', AcademyRequestSchema);
 }
 
 module.exports = mongoose.models

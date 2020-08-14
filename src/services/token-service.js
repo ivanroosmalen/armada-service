@@ -27,9 +27,9 @@ class TokenService extends MongooseService {
 
   sign(payload, secret, expiresIn=settings.jwt.exp) {
       let params = {};
-      if(settings.jwt.exp) {
-        params.expiresIn = expiresIn;
-      }
+      // if(settings.jwt.exp) {
+      //   params.expiresIn = expiresIn;
+      // }
       return jwt.sign(payload, new Buffer(secret, 'base64'), params)
   };
 

@@ -4,20 +4,85 @@ const moment = require('moment');
 const settings = require('../settings.js');
 
 class ClassController extends BaseController {
-    constructor(classService, userService) {
+    constructor(classService, userService, academyService) {
         super(classService);
 
-        this.userService = userService
+        this.userService = userService;
+        this.academyService = academyService;
     }
+
+    async list(event) {
+        let queryParams = event.queryStringParameters;
+        let params = this._getListQuery(queryParams);
+        let academyId = queryParams.academyId;
+        if(!academyId) {
+          return handleError(400, 'Unable to get classes', e);
+        }
+
+        let entities = [];
+        try {
+            let query = {
+              $or: [
+                {
+                  'schedule.startDate': { '$gte': moment(queryParams.startDate).startOf('day').toDate() },
+                  'schedule.endDate': { '$lte': moment(queryParams.endDate).endOf('day').toDate() }
+                },
+                {
+                  'schedule.recurring': true,
+                  'schedule.endDate': { '$lte': moment(queryParams.endDate).endOf('day').toDate() }
+                }
+              ],
+              academyId: { '$in': academyId.split(',') }
+            };
+
+            let classes = await this.service.list(query, params);
+            if(classes && classes.length) {
+              classes.forEach(classObj => {
+                let entity = classObj.toObject();
+                if(entity.schedule.recurring) {
+                  let recurringClasses = this.getRecurringEntities(entity, moment(queryParams.startDate).startOf('day'), moment(queryParams.endDate).endOf('day'), entity.schedule.interval, entity._id, entity.schedule.excludes);
+                  entities.push.apply(entities, recurringClasses)
+                } else {
+                  entities.push(entity);
+                }
+              })
+            }
+        } catch(e) {
+            return handleError(500, 'Unable to find entities', e);
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Entities listed',
+                entity: entities || []
+            })
+        };
+    };
 
     async create(event) {
         if(!event || !event.body) {
             return handleError(400, 'You need to pass a valid object');
         }
 
+        let classObj = event.body;
+        let isAuthorized = await this.isAuthorizedByOwnership(classObj, event.user);
+        if(!isAuthorized) {
+          return handleError(401, 'Unauthorized');
+        }
+
         let entity;
         try {
-            entity = await this.service.create(event.body);
+            if(classObj.parentId && classObj.excludeDate) {
+                let currentClass = await this.service.findById(classObj.parentId);
+                if(currentClass) {
+                    currentClass.schedule.excludes.push(classObj.excludeDate);
+                    await this.service.update(currentClass._id, currentClass);
+                }
+            }
+
+            classObj.parentId = undefined;
+            entity = await this.service.create(classObj);
         } catch(e) {
             return handleError(500, 'Unable to create entity', e);
         }
@@ -27,6 +92,70 @@ class ClassController extends BaseController {
             body: JSON.stringify({
                 message: 'Entity created',
                 entity
+            })
+        };
+    };
+
+    async update(event) {
+        if(!event || !event.body || !event.pathParameters || !event.pathParameters.id) {
+            return handleError(400, 'You need to pass entity info to update an entity');
+        }
+
+        let classObj = event.body;
+        let isAuthorized = await this.isAuthorizedByOwnership(classObj, event.user);
+        if(!isAuthorized) {
+          return handleError(401, 'Unauthorized');
+        }
+
+        let entity;
+        try {
+            let id = event.pathParameters.id;
+            // Removing parent ID to have a completely separate event
+            classObj.parentId = undefined;
+            console.log(classObj)
+            entity = await this.service.update(id, classObj);
+        } catch(e) {
+            return handleError(500, 'Unable to update entity', e);
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Entity updated',
+                entity
+            })
+        };
+    };
+
+    async delete(event) {
+        if(!event || !event.pathParameters || !event.pathParameters.id) {
+            return handleError(400, 'You need to pass a valid id');
+        }
+
+        let id = event.pathParameters.id;
+        let classObj = await this.service.findById(id);
+        if(!classObj) {
+            throw new Error('Entity does not exist');
+        }
+
+        let isAuthorized = await this.isAuthorizedByOwnership(classObj, event.user);
+        if(!isAuthorized) {
+          return handleError(401, 'Unauthorized');
+        }
+
+        try {
+            await Promise.all([
+              this.service.deleteById(id),
+              // this.service.deleteByParentIdAndFutureDates(id)
+            ]);
+        } catch(e) {
+            return handleError(500, 'Unable to delete entity', e);
+        }
+
+        return {
+            statusCode: 204,
+            body: JSON.stringify({
+                message: 'Entity deleted'
             })
         };
     };
@@ -57,6 +186,10 @@ class ClassController extends BaseController {
 
           if(!(user && classObj)) {
             return handleError(400, 'You need to pass a valid object');
+          }
+
+          if(classObj.classSize && classObj.classSize < classObj.attendees.length) {
+            return handleError(400, 'Class limit is reached');
           }
 
           let classToUpdate;
@@ -123,12 +256,52 @@ class ClassController extends BaseController {
         };
     };
 
+    getRecurringEntities(entity, startDate, endDate, interval, parentId, excludes = []) {
+      let entityStartDate = moment(entity.schedule.startDate)
+
+      if(entityStartDate > endDate) {
+        return [];
+      }
+
+      let entities = [ ];
+      if(!excludes.find(excludeDate => moment(excludeDate).valueOf() === entityStartDate.valueOf()) && moment(startDate).valueOf() <= entityStartDate.valueOf()) {
+        entities.push(entity);
+      }
+
+      let newEntity = JSON.parse(JSON.stringify(entity));
+
+      switch(interval) {
+        case 'daily':
+          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).add(1, 'days').toDate();
+          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).add(1, 'days').toDate();
+        break;
+        case 'weekly':
+          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).add(7, 'days').toDate();
+          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).add(7, 'days').toDate();
+        break;
+        case 'monthly':
+          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).add(31, 'days').toDate();
+          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).add(31, 'days').toDate();
+        break;
+      }
+
+      newEntity.parentId = parentId;
+      newEntity.schedule.recurring = false;
+      newEntity.schedule.interval = undefined;
+      newEntity.schedule.excludes = [];
+      newEntity.attendees = [];
+
+      let newEntities = this.getRecurringEntities(newEntity, startDate, endDate, interval, parentId, excludes)
+      entities.push.apply(entities, newEntities);
+      return entities;
+    }
+
     async createNewClassFromExisting(classObj, startDate, endDate) {
       // Need to create new class and schedule item, so add excluding date to parent
       classObj.schedule.excludes = classObj.schedule.excludes || [];
       classObj.schedule.excludes.push(startDate);
-      await this.service.update(classObj._id, classObj)
-      console.log(classObj)
+      await this.service.update(classObj._id, classObj);
+
       let newClassObj = {schedule: {}};
       Object.assign(newClassObj, classObj.toObject())
 
@@ -141,6 +314,11 @@ class ClassController extends BaseController {
       newClassObj.schedule.excludes = undefined;
 
       return this.service.create(newClassObj);
+    }
+
+    async isAuthorizedByOwnership(classObj, user) {
+        let academy = await this.academyService.findById(classObj.academyId);
+        return ((academy.owners && academy.owners.find(owner => (owner._id.toString() === user._id.toString()))) || user.admin === true)
     }
 }
 

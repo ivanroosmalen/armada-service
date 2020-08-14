@@ -14,6 +14,47 @@ class ClassService extends MongooseService {
 
     return this.schema.findOne({ parentId, 'schedule.startDate': startDate });
   };
+
+  async deleteByParentIdAndFutureDates(parentId) {
+      if(!parentId) {
+          throw new Error('Must pass in a parent id');
+      }
+
+    return this.schema.deleteMany({ parentId, 'schedule.startDate': { $gte: new Date() } });
+  };
+
+  async findByUserId(userId) {
+      if(!userId) {
+          throw new Error('Must pass in a userId');
+      }
+
+      return this.schema.find({
+        '$or': [
+          { 'instructors._id': userId },
+          { 'attendees._id': userId }
+        ]
+      });
+  };
+
+  async updateClassUser(userId, fields) {
+    let userFields = ['instructors', 'attendees']
+    let classes = await this.findByUserId(userId);
+
+    let updates = [];
+    for(let classObj of classes) {
+      for(let userField of userFields) {
+        classObj[userField].forEach(user => {
+          if(user._id === userId) {
+            Object.assign(user, fields)
+          }
+        })
+      }
+
+      updates.push(this.update(classObj._id, classObj));
+    }
+
+    await Promise.all(updates);
+  }
 }
 
 module.exports = ClassService

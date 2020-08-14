@@ -23,6 +23,9 @@ custom:
   classes:
     handler: src/handlers/classesHandler
     path: ${self:custom.version}/classes
+  academyRequests:
+    handler: src/handlers/academyRequestsHandler
+    path: ${self:custom.version}/academyRequests
   cors:
     origins:
       - 'http://localhost*'
@@ -267,90 +270,6 @@ functions:
             parameters:
               paths:
                 id: true
-  createLocations:
-    handler: ${self:custom.locations.handler}.create
-    events:
-      - http:
-          path: ${self:custom.locations.path}
-          method: post
-  updateLocations:
-    handler: ${self:custom.locations.handler}.update
-    events:
-      - http:
-          path: ${self:custom.locations.path}/{id}
-          method: put
-          request:
-            parameters:
-              paths:
-                id: true
-  getLocations:
-    handler: ${self:custom.locations.handler}.get
-    events:
-      - http:
-          path: ${self:custom.locations.path}/{id}
-          method: get
-          request:
-            parameters:
-              paths:
-                id: true
-  listLocations:
-    handler: ${self:custom.locations.handler}.list
-    events:
-      - http:
-          path: ${self:custom.locations.path}
-          method: get
-  deleteLocations:
-    handler: ${self:custom.locations.handler}.delete
-    events:
-      - http:
-          path: ${self:custom.locations.path}/{id}
-          method: delete
-          request:
-            parameters:
-              paths:
-                id: true
-  createScheduleItems:
-    handler: ${self:custom.scheduleItems.handler}.create
-    events:
-      - http:
-          path: ${self:custom.scheduleItems.path}
-          method: post
-  updateScheduleItems:
-    handler: ${self:custom.scheduleItems.handler}.update
-    events:
-      - http:
-          path: ${self:custom.scheduleItems.path}/{id}
-          method: put
-          request:
-            parameters:
-              paths:
-                id: true
-  getScheduleItems:
-    handler: ${self:custom.scheduleItems.handler}.get
-    events:
-      - http:
-          path: ${self:custom.scheduleItems.path}/{id}
-          method: get
-          request:
-            parameters:
-              paths:
-                id: true
-  listScheduleItems:
-    handler: ${self:custom.scheduleItems.handler}.list
-    events:
-      - http:
-          path: ${self:custom.scheduleItems.path}
-          method: get
-  deleteScheduleItems:
-    handler: ${self:custom.scheduleItems.handler}.delete
-    events:
-      - http:
-          path: ${self:custom.scheduleItems.path}/{id}
-          method: delete
-          request:
-            parameters:
-              paths:
-                id: true
   createClasses:
     handler: ${self:custom.classes.handler}.create
     events:
@@ -400,6 +319,48 @@ functions:
     events:
       - http:
           path: ${self:custom.classes.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  createAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.create
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}
+          method: post
+  updateAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.update
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.get
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.list
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}
+          method: get
+  deleteAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/{id}
           method: delete
           request:
             parameters:

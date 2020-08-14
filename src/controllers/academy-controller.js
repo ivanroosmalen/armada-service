@@ -147,7 +147,7 @@ class AcademyController extends BaseController {
                 location.entityId = entity._id;
                 locations.push(location);
             })
-            console.log(locations)
+
             if(locations && locations.length) {
                 await this.locationService.batchCreate(locations);
             }

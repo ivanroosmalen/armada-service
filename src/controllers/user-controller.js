@@ -10,10 +10,12 @@ const AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 
 class UserController extends BaseController {
-    constructor(userService, tokenService) {
+    constructor(userService, tokenService, academyService, classService) {
         super(userService);
 
         this.tokenService = tokenService;
+        this.academyService = academyService;
+        this.classService = classService;
     }
 
     cleanseUserResponse(user) {
@@ -56,7 +58,7 @@ class UserController extends BaseController {
     };
 
     async delete(event) {
-        if(event.user.admin !== true) {
+        if(!event.user.admin) {
           return handleError(400, 'Unauthorized');
         }
 
@@ -75,7 +77,20 @@ class UserController extends BaseController {
       let entity;
       try {
           let id = event.pathParameters.id;
-          entity = await this.service.update(id, this.cleanseUserPreSave(event.body));
+
+          let dependentFields = {}
+          if(event.body.alias) dependentFields.alias = event.body.alias;
+          if(event.body.firstName) dependentFields.firstName = event.body.firstName;
+          if(event.body.lastName) dependentFields.lastName = event.body.lastName;
+
+          let updates = [
+            this.service.update(id, this.cleanseUserPreSave(event.body)),
+            this.academyService.updateAcademyUser(id, dependentFields),
+            this.classService.updateClassUser(id, dependentFields),
+          ];
+
+          let promises = await Promise.all(updates);
+          entity = promises[0];
       } catch(e) {
           return handleError(500, 'Unable to update entity', e);
       }
@@ -258,6 +273,7 @@ class UserController extends BaseController {
 
         let uploadURL = ''
         try {
+          let updates = [];
           let s3Params = {
               Bucket: 'armada-user-images',
               Key: `${id}/${type}/${uuidv4()}`,
@@ -270,9 +286,15 @@ class UserController extends BaseController {
               entity.profileImg = uploadURL.split('?')[0];
           } else if(type === 'thumbnail') {
               entity.thumbnailImg = uploadURL.split('?')[0];
+
+              updates = [
+                this.academyService.updateAcademyUser(id, { thumbnailImg: entity.thumbnailImg }),
+                this.classService.updateClassUser(id, { thumbnailImg: entity.thumbnailImg })
+              ];
           }
 
-          await this.service.update(id, entity);
+          updates.push(this.service.update(id, entity));
+          await Promise.all(updates);
         } catch(e) {
           return handleError(500, 'Unable to get image URL', e);
         }
