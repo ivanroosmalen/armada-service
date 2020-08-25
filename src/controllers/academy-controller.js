@@ -42,7 +42,7 @@ class AcademyController extends BaseController {
 
     async list(event) {
         let params = this._getListQuery(event.queryStringParameters);
-        console.log(event.queryStringParameters)
+
         let { latMin, latMax, lngMin, lngMax, currentLat, currentLng } = event.queryStringParameters || {};
         let query = {};
         if(latMin && latMax && lngMin && lngMax) {
@@ -85,6 +85,13 @@ class AcademyController extends BaseController {
             }
 
             academy.owners = [{
+                _id: user._id,
+                email: user.email,
+                alias: user.alias,
+                thumbnailImg: user.thumbnailImg
+            }];
+
+            academy.students = [{
                 _id: user._id,
                 email: user.email,
                 alias: user.alias,
@@ -217,6 +224,48 @@ class AcademyController extends BaseController {
                 entity: uploadURL
             })
         };
+    }
+
+    async cancelMembership(event) {
+      if(!event.pathParameters || !event.pathParameters.id) {
+          return handleError(400, 'You need to pass entity info to update an entity');
+      }
+
+      let entity;
+      let { id } = event.pathParameters;
+      try {
+          entity = await this.service.findById(id);
+      } catch(e) {
+          return handleError(500, 'Unable to find entity', e);
+      }
+
+      let index;
+      let student = entity.students.find((student, i) => {
+        if(student._id === event.user._id) {
+          index = i;
+
+          return true;
+        }
+      });
+
+      if(!student) {
+          return handleError(401, 'Unauthorized');
+      }
+
+      try {
+          entity.students.splice(index, 1);
+          entity = await this.service.update(id, entity);
+      } catch(e) {
+          return handleError(500, 'Unable to update entity', e);
+      }
+
+      return {
+          statusCode: 200,
+          body: JSON.stringify({
+              message: 'Entity updated',
+              entity
+          })
+      };
     }
 }
 

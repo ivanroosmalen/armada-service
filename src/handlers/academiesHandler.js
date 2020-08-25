@@ -16,7 +16,8 @@ const handler = getHandler({
     controller: new AcademyController(new AcademyService(Academy), new UserService(User), new LocationService(Location)),
     customRoutes: {
         uploadImage: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
-        getUserAcademies: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()]
+        getUserAcademies: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
+        cancelMembership: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
     }
 }, settings);
 

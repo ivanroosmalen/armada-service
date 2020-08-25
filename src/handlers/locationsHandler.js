@@ -1,13 +1,18 @@
 const settings = require('../settings.js');
-const { AcademyRequest } = require('../models/models.js');
+const { Location } = require('../models/models.js');
 const { getHandler } = require('./baseHandler.js');
+const LocationService = require('../services/location-service.js');
+const BaseController = require('../controllers/base-controller.js');
 const { errorHandler, authentication } = require('../utils/middleware.js');
 const { jsonBodyParser, doNotWaitForEmptyEventLoop, cors, httpHeaderNormalizer } = require('middy/middlewares');
 
 const handler = getHandler({
     stackOptions: {
-        validation: { schema: AcademyRequest },
+        validation: { schema: Location },
         type: 'mongoose'
+    },
+    controller: new BaseController( new LocationService(Location)),
+    customRoutes: {
     }
 }, settings);
 

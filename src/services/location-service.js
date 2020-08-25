@@ -20,8 +20,6 @@ class LocationService extends MongooseService {
         entityType
       }
 
-      console.log(query)
-
       return this.schema.find(query, {}, { limit: 50 });
   };
 

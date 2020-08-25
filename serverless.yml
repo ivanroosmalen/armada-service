@@ -270,6 +270,58 @@ functions:
             parameters:
               paths:
                 id: true
+  cancelAcademyMembership:
+    handler: ${self:custom.academies.handler}.cancelMembership
+    events:
+      - http:
+          path: ${self:custom.academies.path}/cancel/{id}
+          method: patch
+          request:
+            parameters:
+              paths:
+                id: true
+  createLocations:
+    handler: ${self:custom.locations.handler}.create
+    events:
+      - http:
+          path: ${self:custom.locations.path}
+          method: post
+  updateLocations:
+    handler: ${self:custom.locations.handler}.update
+    events:
+      - http:
+          path: ${self:custom.locations.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getLocations:
+    handler: ${self:custom.locations.handler}.get
+    events:
+      - http:
+          path: ${self:custom.locations.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listLocations:
+    handler: ${self:custom.locations.handler}.list
+    events:
+      - http:
+          path: ${self:custom.locations.path}
+          method: get
+  deleteLocations:
+    handler: ${self:custom.locations.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.locations.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
   createClasses:
     handler: ${self:custom.classes.handler}.create
     events:
@@ -350,6 +402,16 @@ functions:
             parameters:
               paths:
                 id: true
+  getAcademyRequestByAcademyId:
+    handler: ${self:custom.academyRequests.handler}.getByAcademyId
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/byAcademyId/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
   listAcademyRequests:
     handler: ${self:custom.academyRequests.handler}.list
     events:
@@ -362,6 +424,16 @@ functions:
       - http:
           path: ${self:custom.academyRequests.path}/{id}
           method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  approveAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.approve
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/approve/{id}
+          method: patch
           request:
             parameters:
               paths:

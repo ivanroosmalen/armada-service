@@ -167,7 +167,7 @@ class UserController extends BaseController {
             body.password = bcrypt.hashSync(newPassword.toString(), settings.auth.saltRounds);
 
             entity = await this.service.create(body);
-            await emailService.sendRegistrationEmail(body.email, newPassword);
+            await emailService.sendRegistrationEmail(body.email, newPassword, event.body.locale);
         } catch(e) {
             return handleError(500, 'Unable to register', e);
         }
@@ -191,7 +191,7 @@ class UserController extends BaseController {
         user.password = bcrypt.hashSync(newPassword.toString(), settings.auth.saltRounds);
 
         await this.service.update(user._id, user);
-        await emailService.sendForgotPasswordEmail(user.email, newPassword);
+        await emailService.sendForgotPasswordEmail(user.email, newPassword, event.body.locale);
 
         return {
             statusCode: 200,

@@ -21,6 +21,14 @@ class AcademyService extends MongooseService {
       });
   };
 
+  async findByOwnerId(userId) {
+      if(!userId) {
+          throw new Error('Must pass in a userId');
+      }
+
+      return this.schema.find({ 'owners._id': userId });
+  };
+
   async updateAcademyUser(userId, fields) {
     let userFields = ['owners', 'instructors', 'students']
     let academies = await this.findByUserId(userId);

@@ -48,7 +48,10 @@ if(!modelKeys || !modelKeys.length) {
       address: { type: String },
       placeId: { type: String },
       url: { type: String },
-      geo: mongoose.Schema.Types.Point
+      geo: mongoose.Schema.Types.Point,
+      type: { type: String },
+      entityType: { type: String, enum: entityType  },
+      entityId: { type: String }
     });
 
     let AcademySchema = new Schema({
@@ -137,7 +140,10 @@ if(!modelKeys || !modelKeys.length) {
     });
 
     let AcademyRequestSchema = new Schema({
-      academyId: { type: String },
+      academy: {
+          _id: { type: String },
+          name: { type: String }
+      },
       user: {
         _id: String,
         alias: String,
