@@ -101,7 +101,7 @@ class AcademyController extends BaseController {
             entity = await this.service.create(academy);
 
             let locations = [];
-            entity.locations && entity.locations.forEach(loc => {
+            entity.toObject().locations && entity.toObject().locations.forEach(loc => {
                 let location = Object.assign({}, loc);
                 location.entityType = 'academy';
                 location.entityId = entity._id;

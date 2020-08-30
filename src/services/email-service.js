@@ -17,9 +17,9 @@ function sendEmail(email, type = 'text', subject, body) {
         Data: subject
        }
       },
-    Source: 'irw.vanroosmalen@gmail.com',
+    Source: 'noreply@armadama.com',
     ReplyToAddresses: [
-       'irw.vanroosmalen@gmail.com'
+       'noreply@armadama.com'
     ],
   };
 

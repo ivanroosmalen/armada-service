@@ -7,7 +7,7 @@ let modelKeys = Object.keys(mongoose.models);
 if(!modelKeys || !modelKeys.length) {
     let MartialArtSchema = new Schema({
         name: { type: String, required: true, index: true, unique: true },
-        subcategory: { type: String, unique: true },
+        subcategory: { type: String },
         description: String,
         countryOfOrigin: String,
         icon: String,

@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.714.2",
-    "bcrypt": "^3.0.6",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^8.0.0",
     "fs": "^0.0.1-security",
     "http-errors": "^1.7.3",
