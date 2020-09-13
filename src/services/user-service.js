@@ -14,6 +14,7 @@ class UserService extends MongooseService {
          jwt: 0,
          jwtExpiration: 0,
          admin: 0,
+         email: 0,
          emailVerificationToken: 0,
          emailExpiration: 0,
          verified: 0,
