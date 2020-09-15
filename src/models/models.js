@@ -121,9 +121,11 @@ if(!modelKeys || !modelKeys.length) {
         alias: String,
         firstName: String,
         lastName: String,
-        thumbnailImg: String
+        thumbnailImg: String,
+        online: Boolean
       }],
       classSize: { type: Number },
+      onlineClassSize: { type: Number },
       schedule: { type: ScheduleSchema }
     });
 
@@ -155,6 +157,22 @@ if(!modelKeys || !modelKeys.length) {
       complete: Boolean
     });
 
+    let NotifactionSchema = new Schema({
+        message: { type: String },
+        academy: {
+          name: String,
+          _id: String
+        },
+        user: {
+          _id: String,
+          alias: String,
+          firstName: String,
+          lastName: String,
+          thumbnailImg: String
+        },
+        createdDate: Date
+    })
+
 
     mongoose.model('MartialArt', MartialArtSchema);
     mongoose.model('User', UserSchema);
@@ -165,6 +183,7 @@ if(!modelKeys || !modelKeys.length) {
     mongoose.model('Location', LocationSchema);
     mongoose.model('JwtToken', JwtTokenSchema);
     mongoose.model('AcademyRequest', AcademyRequestSchema);
+    mongoose.model('Notification', NotifactionSchema);
 }
 
 module.exports = mongoose.models

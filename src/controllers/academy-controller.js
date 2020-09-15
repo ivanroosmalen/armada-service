@@ -16,17 +16,7 @@ class AcademyController extends BaseController {
         let { id } = event.pathParameters;
         let entity = {};
         try {
-            // Get owner academies
-            let query = { 'owners._id': id };
-            entity.owner = await this.service.list(query, {})
-
-            // Get instructor academies
-            query = { 'instructors._id': id };
-            entity.instructor = await this.service.list(query, {})
-
-            // Get student academies
-            query = { 'students._id': id };
-            entity.student = await this.service.list(query, {})
+            entity = await this.service.getUserAcademies(id);
         } catch(e) {
             return handleError(500, 'Unable to find entities', e);
         }

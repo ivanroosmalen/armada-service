@@ -165,7 +165,7 @@ class ClassController extends BaseController {
             return handleError(400, 'You need to pass a valid object');
         }
 
-        let { classId, startDate, endDate } = event.body;
+        let { classId, startDate, endDate, online } = event.body;
         let userId = event.user._id;
 
         if(!(userId && classId && startDate && endDate)) {
@@ -205,7 +205,8 @@ class ClassController extends BaseController {
             alias: user.alias,
             firstName: user.firstName,
             lastName: user.lastName,
-            thumbnailImg: user.thumbnailImg
+            thumbnailImg: user.thumbnailImg,
+            online
           }
 
           let isAttending = classToUpdate.attendees && classToUpdate.attendees.find(attendee => (attendee._id.toString() === user._id.toString()));

@@ -49,6 +49,25 @@ class AcademyService extends MongooseService {
     await Promise.all(updates);
   }
 
+  async getUserAcademies(userId) {
+    let ownerQuery = { 'owners._id': userId };
+    let instructorQuery = { 'instructors._id': userId };
+    let studentQuery = { 'students._id': userId };
+
+    let entity = {};
+    let promise = await Promise.all([
+      this.list(ownerQuery, {}),
+      this.list(instructorQuery, {}),
+      this.list(studentQuery, {})
+    ])
+
+    entity.owner = promise[0];
+    entity.instructor = promise[1];
+    entity.student = promise[2];
+
+    return entity;
+  }
+
 }
 
 module.exports = AcademyService

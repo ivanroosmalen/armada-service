@@ -26,6 +26,9 @@ custom:
   academyRequests:
     handler: src/handlers/academyRequestsHandler
     path: ${self:custom.version}/academyRequests
+  notifications:
+    handler: src/handlers/notificationsHandler
+    path: ${self:custom.version}/notifications
   cors:
     origins:
       - 'https://ls20sku8fd.execute-api.us-east-1.amazonaws.com*'
@@ -393,6 +396,48 @@ functions:
       - http:
           path: ${self:custom.academyRequests.path}/approve/{id}
           method: patch
+          request:
+            parameters:
+              paths:
+                id: true
+  createNotifications:
+    handler: ${self:custom.notifications.handler}.create
+    events:
+      - http:
+          path: ${self:custom.notifications.path}
+          method: post
+  updateNotifications:
+    handler: ${self:custom.notifications.handler}.update
+    events:
+      - http:
+          path: ${self:custom.notifications.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getNotifications:
+    handler: ${self:custom.notifications.handler}.get
+    events:
+      - http:
+          path: ${self:custom.notifications.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listNotifications:
+    handler: ${self:custom.notifications.handler}.list
+    events:
+      - http:
+          path: ${self:custom.notifications.path}
+          method: get
+  deleteNotifications:
+    handler: ${self:custom.notifications.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.notifications.path}/{id}
+          method: delete
           request:
             parameters:
               paths:
