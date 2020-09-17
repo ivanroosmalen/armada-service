@@ -18,13 +18,21 @@ class NotificationController extends BaseController {
         try {
             let academy = await this.academyService.findById(event.body.academy._id)
             if(!academy) {
-              return handleError(500, 'Academy does not exist', e);
+              return handleError(400, 'Academy does not exist', e);
+            }
+
+            if(!isAuthorizedByOwnership(academy, event.user)) {
+              return handleError(401, 'Unauthorized');
             }
 
             let user = await this.userService.findById(event.user._id);
             let notification = event.body;
 
-            notification.academy = academy
+            notification.academy = {
+              _id: academy._id,
+              name: academy.name
+            };
+
             notification.user = {
               _id: user._id,
               alias: user.alias,
@@ -56,6 +64,19 @@ class NotificationController extends BaseController {
         let entity;
         try {
             let notification = await this.service.findById(event.pathParameters.id);
+            if(!notification) {
+              return handleError(400, 'Notification does not exist', e);
+            }
+
+            let academy = await this.academyService.findById(notification.academy._id)
+            if(!academy) {
+              return handleError(400, 'Academy does not exist', e);
+            }
+
+            if(!isAuthorizedByOwnership(academy, event.user)) {
+              return handleError(401, 'Unauthorized');
+            }
+
             notification.message = event.body.message;
             entity = await this.service.update(notification);
         } catch(e) {
@@ -117,6 +138,65 @@ class NotificationController extends BaseController {
             })
         };
     };
+
+    async get(event) {
+        if(!event || !event.pathParameters || !event.pathParameters.id) {
+            return handleError(400, 'You need to pass a valid id');
+        }
+
+        let entity = {}
+        // try {
+        //     let id = event.pathParameters.id;
+        //     entity = await this.service.findById(id);
+        // } catch(e) {
+        //     return handleError(500, 'Unable to find entity', e);
+        // }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Entity returned',
+                entity
+            })
+        };
+    };
+
+    async delete(event) {
+        if(!event || !event.pathParameters || !event.pathParameters.id) {
+            return handleError(400, 'You need to pass a valid id');
+        }
+
+        try {
+            let notification = await this.service.findById(event.pathParameters.id);
+            if(!notification) {
+              return handleError(400, 'Notification does not exist', e);
+            }
+
+            let academy = await this.academyService.findById(notification.academy._id)
+            if(!academy) {
+              return handleError(400, 'Academy does not exist', e);
+            }
+
+            if(!isAuthorizedByOwnership(academy, event.user)) {
+              return handleError(401, 'Unauthorized');
+            }
+
+            await this.service.deleteById(event.pathParameters.id)
+        } catch(e) {
+            return handleError(500, 'Unable to delete entity', e);
+        }
+
+        return {
+            statusCode: 204,
+            body: JSON.stringify({
+                message: 'Entity deleted'
+            })
+        };
+    };
+
+    isAuthorizedByOwnership(academy, user) {
+        return ((academy.owners && academy.owners.find(owner => (owner._id.toString() === user._id.toString()))) || user.admin === true)
+    }
 
 }
 
