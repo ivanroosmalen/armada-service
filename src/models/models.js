@@ -93,7 +93,7 @@ if(!modelKeys || !modelKeys.length) {
       name: { type: String, required: true, index: true }
     });
 
-    let interval = [ 'daily', 'weekly', 'monthly' ];
+    let interval = [ 'daily', 'weekly', 'semiMonthly', 'monthly', 'yearly' ];
     let ScheduleSchema = new Schema({
       startDate: { type: Date, required: true, index: true },
       endDate: { type: Date, required: true, index: true },
