@@ -112,7 +112,6 @@ class ClassController extends BaseController {
             let id = event.pathParameters.id;
             // Removing parent ID to have a completely separate event
             classObj.parentId = undefined;
-            console.log(classObj)
             entity = await this.service.update(id, classObj);
         } catch(e) {
             return handleError(500, 'Unable to update entity', e);

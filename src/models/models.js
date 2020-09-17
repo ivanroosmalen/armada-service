@@ -126,6 +126,7 @@ if(!modelKeys || !modelKeys.length) {
       }],
       classSize: { type: Number },
       onlineClassSize: { type: Number },
+      supportOnlineClasses: { type: Boolean },
       schedule: { type: ScheduleSchema }
     });
 
