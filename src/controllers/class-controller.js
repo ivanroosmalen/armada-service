@@ -279,6 +279,10 @@ class ClassController extends BaseController {
           newEntity.schedule.startDate = moment(newEntity.schedule.startDate).add(7, 'days').toDate();
           newEntity.schedule.endDate = moment(newEntity.schedule.endDate).add(7, 'days').toDate();
         break;
+        case 'semiMonthly':
+          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).add(14, 'days').toDate();
+          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).add(14, 'days').toDate();
+        break;
         case 'monthly':
           newEntity.schedule.startDate = moment(newEntity.schedule.startDate).add(31, 'days').toDate();
           newEntity.schedule.endDate = moment(newEntity.schedule.endDate).add(31, 'days').toDate();
