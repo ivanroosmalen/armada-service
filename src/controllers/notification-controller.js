@@ -21,7 +21,7 @@ class NotificationController extends BaseController {
               return handleError(400, 'Academy does not exist', e);
             }
 
-            if(!isAuthorizedByOwnership(academy, event.user)) {
+            if(!this.isAuthorizedByOwnership(academy, event.user)) {
               return handleError(401, 'Unauthorized');
             }
 
@@ -73,7 +73,7 @@ class NotificationController extends BaseController {
               return handleError(400, 'Academy does not exist', e);
             }
 
-            if(!isAuthorizedByOwnership(academy, event.user)) {
+            if(!this.isAuthorizedByOwnership(academy, event.user)) {
               return handleError(401, 'Unauthorized');
             }
 
@@ -177,7 +177,7 @@ class NotificationController extends BaseController {
               return handleError(400, 'Academy does not exist', e);
             }
 
-            if(!isAuthorizedByOwnership(academy, event.user)) {
+            if(!this.isAuthorizedByOwnership(academy, event.user)) {
               return handleError(401, 'Unauthorized');
             }
 
