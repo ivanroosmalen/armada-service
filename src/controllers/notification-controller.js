@@ -78,7 +78,7 @@ class NotificationController extends BaseController {
             }
 
             notification.message = event.body.message;
-            entity = await this.service.update(notification);
+            entity = await this.service.update(notification._id, notification);
         } catch(e) {
             return handleError(500, 'Unable to create entity', e);
         }
