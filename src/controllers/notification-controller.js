@@ -42,7 +42,7 @@ class NotificationController extends BaseController {
             };
             notification.createdDate = new Date();
 
-            entity = await this.service.create(academyRequest);
+            entity = await this.service.create(notification);
         } catch(e) {
             return handleError(500, 'Unable to create entity', e);
         }
