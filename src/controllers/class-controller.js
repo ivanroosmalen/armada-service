@@ -80,6 +80,7 @@ class ClassController extends BaseController {
         try {
             let query = {
               'schedule.startDate': { '$lte': moment().toDate() },
+              'schedule.startDate': { '$gte': moment().subtract(12, 'weeks').startOf('day').toDate() },
               'attendees._id': event.user._id
             };
 
