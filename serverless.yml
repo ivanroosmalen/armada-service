@@ -213,6 +213,12 @@ functions:
             parameters:
               paths:
                 id: true
+  getAttendanceMetrics:
+    handler: ${self:custom.classes.handler}.getAttendanceMetrics
+    events:
+      - http:
+          path: ${self:custom.classes.path}/metrics/attendance
+          method: get
   createAcademyRequests:
     handler: ${self:custom.academyRequests.handler}.create
     events:

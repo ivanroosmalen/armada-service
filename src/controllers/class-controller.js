@@ -60,6 +60,44 @@ class ClassController extends BaseController {
         };
     };
 
+    groupAttendanceCount(classes) {
+      if(!(classes && classes.length)) {
+        return {};
+      }
+
+      let attendanceByWeek = {};
+      classes.forEach(classObj => {
+        let weekDate = moment(classObj.schedule.startDate).startOf('week').format();
+        attendanceByWeek[weekDate] = attendanceByWeek.hasOwnProperty(weekDate) ? attendanceByWeek[weekDate] + 1 : 1;
+      })
+
+      return attendanceByWeek;
+    }
+
+    async getAttendanceMetrics(event) {
+        let entities = {};
+
+        try {
+            let query = {
+              'schedule.startDate': { '$lte': moment().toDate() },
+              'attendees._id': event.user._id
+            };
+
+            let classes = await this.service.list(query);
+            entities = this.groupAttendanceCount(classes);
+        } catch(e) {
+            return handleError(500, 'Unable to find entities', e);
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Entities listed',
+                entity: entities || {}
+            })
+        };
+    };
+
     async create(event) {
         if(!event || !event.body) {
             return handleError(400, 'You need to pass a valid object');

@@ -16,7 +16,8 @@ const handler = getHandler({
     controller: new ClassController(new ClassService(Class), new UserService(User), new AcademyService(Academy)),
     customRoutes: {
         attend: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
-        unattend: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()]
+        unattend: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
+        getAttendanceMetrics: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()]
     }
 }, settings);
 
