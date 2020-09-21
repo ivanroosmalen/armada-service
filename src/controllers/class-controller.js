@@ -60,16 +60,15 @@ class ClassController extends BaseController {
         };
     };
 
-    groupAttendanceCount(classes) {
+    groupAttendanceCount(classes, startDate, endDate) {
       if(!(classes && classes.length)) {
         return {};
       }
 
       let attendanceByWeek = {};
 
-      let currentDate = moment();
-      let startDate = moment().subtract(12, 'weeks').startOf('week');
-      for(startDate; startDate < currentDate; startDate.add(1, 'weeks')) {
+      startDate = startDate.startOf('week');
+      for(startDate; startDate < endDate; startDate.add(1, 'weeks')) {
         attendanceByWeek[startDate.format('YYYY/MM/DD')] = 0;
       }
 
@@ -82,17 +81,26 @@ class ClassController extends BaseController {
     }
 
     async getAttendanceMetrics(event) {
-        let entities = {};
+        let queryParams = event.queryStringParameters;
+        if(!queryParams.startDate && !queryParams.endDate) {
+
+        }
+
+        let startDate = moment(queryParams.startDate);
+        let endDate = moment(queryParams.endDate);
+
+        let entities = { byWeek: {}, total: 0 };
 
         try {
             let query = {
-              'schedule.startDate': { '$lte': moment().toDate() },
-              'schedule.startDate': { '$gte': moment().subtract(12, 'weeks').startOf('day').toDate() },
+              'schedule.startDate': { '$lte': endDate.toDate() },
+              'schedule.startDate': { '$gte': startDate.startOf('day').toDate() },
               'attendees._id': event.user._id
             };
 
             let classes = await this.service.list(query);
-            entities = this.groupAttendanceCount(classes);
+            entities.byWeek = this.groupAttendanceCount(classes, startDate, endDate);
+            entities.total = classes.length;
         } catch(e) {
             return handleError(500, 'Unable to find entities', e);
         }
@@ -101,7 +109,7 @@ class ClassController extends BaseController {
             statusCode: 200,
             body: JSON.stringify({
                 message: 'Entities listed',
-                entity: entities || {}
+                entity: entities || { byWeek: {}, total: 0 }
             })
         };
     };
