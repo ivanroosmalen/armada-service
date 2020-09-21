@@ -66,8 +66,15 @@ class ClassController extends BaseController {
       }
 
       let attendanceByWeek = {};
+
+      let currentDate = moment();
+      let startDate = moment().subtract(12, 'weeks').startOf('week');
+      for(startDate; startDate < currentDate; startDate.add(1, 'weeks')) {
+        attendanceByWeek[startDate.format('YYYY/MM/DD')] = 0;
+      }
+
       classes.forEach(classObj => {
-        let weekDate = moment(classObj.schedule.startDate).startOf('week').format();
+        let weekDate = moment(classObj.schedule.startDate).startOf('week').format('YYYY/MM/DD');
         attendanceByWeek[weekDate] = attendanceByWeek.hasOwnProperty(weekDate) ? attendanceByWeek[weekDate] + 1 : 1;
       })
 
