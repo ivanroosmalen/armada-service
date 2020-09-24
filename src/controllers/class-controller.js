@@ -245,7 +245,13 @@ class ClassController extends BaseController {
             return handleError(400, 'Class limit is reached');
           }
 
-          let classToUpdate = await this.createNewClassFromExisting(classObj, startDate, endDate);
+          let classToUpdate;
+          let exactClassExists = moment(classObj.schedule.startDate).valueOf() === moment(startDate).valueOf() || existingClass;
+          if(exactClassExists) {
+            classToUpdate = existingClass || classObj;
+          } else {
+            classToUpdate = await this.createNewClassFromExisting(classObj, startDate, endDate);
+          }
 
           let attendee = {
             _id: user._id,

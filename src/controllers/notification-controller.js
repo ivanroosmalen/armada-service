@@ -1,4 +1,5 @@
 const BaseController = require('./base-controller.js');
+const emailService = require('../services/email-service.js');
 const { handleError } = require('../utils/error-handler.js');
 const settings = require('../settings.js');
 
@@ -43,6 +44,11 @@ class NotificationController extends BaseController {
             notification.createdDate = new Date();
 
             entity = await this.service.create(notification);
+
+            let emails = academy.students.map(member => (member.email))
+
+            //TODO update for handling portuguese emails
+            await emailService.sendNotificationEmail(emails, entity);
         } catch(e) {
             return handleError(500, 'Unable to create entity', e);
         }
