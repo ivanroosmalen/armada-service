@@ -60,7 +60,7 @@ class ClassController extends BaseController {
         };
     };
 
-    groupAttendanceCount(classes, startDate, endDate) {
+    groupCurrentUserAttendanceCountByWeek(classes, startDate, endDate) {
       if(!(classes && classes.length)) {
         return {};
       }
@@ -80,27 +80,86 @@ class ClassController extends BaseController {
       return attendanceByWeek;
     }
 
+    groupAllUserAttendanceCountByDay(classes, startDate, endDate) {
+      if(!(classes && classes.length)) {
+        return {};
+      }
+
+      let attendanceByDay = {};
+      let total = 0;
+      startDate = startDate.startOf('day');
+      for(startDate; startDate < endDate; startDate.add(1, 'day')) {
+        attendanceByDay[startDate.format('YYYY/MM/DD')] = 0;
+      }
+
+      classes.forEach(classObj => {
+        total+= (classObj.attendees ? classObj.attendees.length : 0);
+        let dayDate = moment(classObj.schedule.startDate).startOf('day').format('YYYY/MM/DD');
+        attendanceByDay[dayDate] = attendanceByDay.hasOwnProperty(dayDate) ? attendanceByDay[dayDate] + classObj.attendees.length : 0;
+      })
+
+      return [ total, attendanceByDay ];
+    }
+
     async getAttendanceMetrics(event) {
         let queryParams = event.queryStringParameters;
-        if(!queryParams.startDate && !queryParams.endDate) {
 
-        }
-
-        let startDate = moment(queryParams.startDate);
-        let endDate = moment(queryParams.endDate);
+        let startDate = queryParams.startDate ? moment(queryParams.startDate) : moment().subtract(1, 'month');
+        let endDate = queryParams.endDate ? moment(queryParams.endDate) : moment();
 
         let entities = { byWeek: {}, total: 0 };
 
         try {
             let query = {
-              'schedule.startDate': { '$lte': endDate.toDate() },
-              'schedule.startDate': { '$gte': startDate.startOf('day').toDate() },
-              'attendees._id': event.user._id
+              $and: [
+                {'schedule.startDate': { '$lte': endDate.toDate() }},
+                {'schedule.startDate': { '$gte': startDate.startOf('day').toDate() }},
+                {'attendees._id': event.user._id}
+              ]
             };
 
             let classes = await this.service.list(query);
-            entities.byWeek = this.groupAttendanceCount(classes, startDate, endDate);
+            entities.byWeek = this.groupCurrentUserAttendanceCountByWeek(classes, startDate, endDate);
             entities.total = classes.length;
+        } catch(e) {
+            return handleError(500, 'Unable to find entities', e);
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Entities listed',
+                entity: entities || { byWeek: {}, total: 0 }
+            })
+        };
+    };
+
+    async getTotalAttendanceMetrics(event) {
+        let queryParams = event.queryStringParameters;
+
+        let startDate = queryParams.startDate ? moment(queryParams.startDate) : moment().subtract(1, 'month');
+        let endDate = queryParams.endDate ? moment(queryParams.endDate) : moment();
+
+        let entities = { byWeek: {}, total: 0 };
+
+        try {
+            let academies = await this.academyService.findByOwnerId(event.user._id);
+            if(!(academies && academies.length)) {
+              return handleError(401, 'Unauthorized', e);
+            }
+
+            let query = {
+              $and: [
+                {'schedule.startDate': { '$lte': endDate.toDate() }},
+                {'schedule.startDate': { '$gte': startDate.startOf('day').toDate() }},
+                {academyId: { '$in': academies.map(academy => academy._id) }}
+              ]
+            };
+
+            let classes = await this.service.list(query);
+            let result = this.groupAllUserAttendanceCountByDay(classes, startDate, endDate);
+            entities.total = result[0];
+            entities.byWeek = result[1];
         } catch(e) {
             return handleError(500, 'Unable to find entities', e);
         }

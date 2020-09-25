@@ -219,6 +219,12 @@ functions:
       - http:
           path: ${self:custom.classes.path}/metrics/attendance
           method: get
+  getTotalAttendanceMetrics:
+    handler: ${self:custom.classes.handler}.getTotalAttendanceMetrics
+    events:
+      - http:
+          path: ${self:custom.classes.path}/metrics/totalAttendance
+          method: get
   createAcademyRequests:
     handler: ${self:custom.academyRequests.handler}.create
     events:

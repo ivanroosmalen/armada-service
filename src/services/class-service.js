@@ -55,6 +55,10 @@ class ClassService extends MongooseService {
 
     await Promise.all(updates);
   }
+
+  async count(query) {
+    return this.schema.count(query);
+  }
 }
 
 module.exports = ClassService
