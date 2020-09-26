@@ -1,6 +1,6 @@
 const BaseController = require('./base-controller.js');
 const { handleError } = require('../utils/error-handler.js');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const settings = require('../settings.js');
 
 class ClassController extends BaseController {
@@ -24,7 +24,7 @@ class ClassController extends BaseController {
             let query = {
               $or: [
                 {
-                  'schedule.startDate': { '$gte': moment(queryParams.startDate).startOf('day').toDate() },
+                  'schedule.startDate': { '$gte': moment(queryParams.startDate).toDate() },
                   'schedule.endDate': { '$lte': moment(queryParams.endDate).endOf('day').toDate() }
                 },
                 {
@@ -60,7 +60,7 @@ class ClassController extends BaseController {
         };
     };
 
-    groupCurrentUserAttendanceCountByWeek(classes, startDate, endDate) {
+    groupCurrentUserAttendanceCountByWeek(classes, startDate, endDate, timezone) {
       if(!(classes && classes.length)) {
         return {};
       }
@@ -73,28 +73,27 @@ class ClassController extends BaseController {
       }
 
       classes.forEach(classObj => {
-        let weekDate = moment(classObj.schedule.startDate).startOf('week').format('YYYY/MM/DD');
+        let weekDate = moment(classObj.schedule.startDate).tz(timezone).startOf('week').format('YYYY/MM/DD');
         attendanceByWeek[weekDate] = attendanceByWeek.hasOwnProperty(weekDate) ? attendanceByWeek[weekDate] + 1 : 1;
       })
 
       return attendanceByWeek;
     }
 
-    groupAllUserAttendanceCountByDay(classes, startDate, endDate) {
+    groupAllUserAttendanceCountByDay(classes, startDate, endDate, timezone) {
       if(!(classes && classes.length)) {
         return {};
       }
 
       let attendanceByDay = {};
       let total = 0;
-      startDate = startDate.startOf('day');
       for(startDate; startDate < endDate; startDate.add(1, 'day')) {
         attendanceByDay[startDate.format('YYYY/MM/DD')] = 0;
       }
 
       classes.forEach(classObj => {
         total+= (classObj.attendees ? classObj.attendees.length : 0);
-        let dayDate = moment(classObj.schedule.startDate).startOf('day').format('YYYY/MM/DD');
+        let dayDate = moment(classObj.schedule.startDate).tz(timezone).format('YYYY/MM/DD');
         attendanceByDay[dayDate] = attendanceByDay.hasOwnProperty(dayDate) ? attendanceByDay[dayDate] + classObj.attendees.length : 0;
       })
 
@@ -104,6 +103,7 @@ class ClassController extends BaseController {
     async getAttendanceMetrics(event) {
         let queryParams = event.queryStringParameters;
 
+        let timezone = queryParams.timezone || 'utc';
         let startDate = queryParams.startDate ? moment(queryParams.startDate) : moment().subtract(1, 'month');
         let endDate = queryParams.endDate ? moment(queryParams.endDate) : moment();
 
@@ -113,13 +113,13 @@ class ClassController extends BaseController {
             let query = {
               $and: [
                 {'schedule.startDate': { '$lte': endDate.toDate() }},
-                {'schedule.startDate': { '$gte': startDate.startOf('day').toDate() }},
+                {'schedule.startDate': { '$gte': startDate.toDate() }},
                 {'attendees._id': event.user._id}
               ]
             };
 
             let classes = await this.service.list(query);
-            entities.byWeek = this.groupCurrentUserAttendanceCountByWeek(classes, startDate, endDate);
+            entities.byWeek = this.groupCurrentUserAttendanceCountByWeek(classes, startDate.tz(timezone), endDate.tz(timezone), timezone);
             entities.total = classes.length;
         } catch(e) {
             return handleError(500, 'Unable to find entities', e);
@@ -137,6 +137,7 @@ class ClassController extends BaseController {
     async getTotalAttendanceMetrics(event) {
         let queryParams = event.queryStringParameters;
 
+        let timezone = queryParams.timezone || 'utc';
         let startDate = queryParams.startDate ? moment(queryParams.startDate) : moment().subtract(1, 'month');
         let endDate = queryParams.endDate ? moment(queryParams.endDate) : moment();
 
@@ -151,13 +152,13 @@ class ClassController extends BaseController {
             let query = {
               $and: [
                 {'schedule.startDate': { '$lte': endDate.toDate() }},
-                {'schedule.startDate': { '$gte': startDate.startOf('day').toDate() }},
+                {'schedule.startDate': { '$gte': startDate.toDate() }},
                 {academyId: { '$in': academies.map(academy => academy._id) }}
               ]
             };
 
             let classes = await this.service.list(query);
-            let result = this.groupAllUserAttendanceCountByDay(classes, startDate, endDate);
+            let result = this.groupAllUserAttendanceCountByDay(classes, startDate.tz(timezone), endDate.tz(timezone), timezone);
             entities.total = result[0];
             entities.byWeek = result[1];
         } catch(e) {
