@@ -40,7 +40,7 @@ class ClassController extends BaseController {
               classes.forEach(classObj => {
                 let entity = classObj.toObject();
                 if(entity.schedule.recurring) {
-                  let recurringClasses = this.getRecurringEntities(entity, moment(queryParams.startDate).startOf('day'), moment(queryParams.endDate).endOf('day'), entity.schedule.interval, entity._id, entity.schedule.excludes);
+                  let recurringClasses = this.getRecurringEntities(entity, moment(queryParams.startDate), moment(queryParams.endDate).endOf('day'), entity.schedule.interval, entity._id, entity.schedule.excludes);
                   entities.push.apply(entities, recurringClasses)
                 } else {
                   entities.push(entity);
@@ -112,8 +112,8 @@ class ClassController extends BaseController {
         try {
             let query = {
               $and: [
-                {'schedule.startDate': { '$lte': endDate.toDate() }},
-                {'schedule.startDate': { '$gte': startDate.toDate() }},
+                {'schedule.startDate': { '$lte': endDate }},
+                {'schedule.startDate': { '$gte': startDate }},
                 {'attendees._id': event.user._id}
               ]
             };
@@ -151,8 +151,8 @@ class ClassController extends BaseController {
 
             let query = {
               $and: [
-                {'schedule.startDate': { '$lte': endDate.toDate() }},
-                {'schedule.startDate': { '$gte': startDate.toDate() }},
+                {'schedule.startDate': { '$lte': endDate }},
+                {'schedule.startDate': { '$gte': startDate }},
                 {academyId: { '$in': academies.map(academy => academy._id) }}
               ]
             };
