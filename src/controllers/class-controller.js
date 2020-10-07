@@ -291,14 +291,20 @@ class ClassController extends BaseController {
             this.userService.findById(userId),
             this.service.findById(classId),
             this.service.findByParentIdAndStartDate(classId, startDate),
+            this.academyService.getUserAcademies(userId)
           ])
 
           let user = promise[0];
           let classObj = promise[1];
           let existingClass = promise[2];
+          let userAcademies = promise[3] || {};
 
           if(!(user && classObj)) {
             return handleError(400, 'You need to pass a valid object');
+          }
+
+          if(!(userAcademies.student && userAcademies.student.find(academy => (academy._id.toString() === classObj.academyId.toString())))) {
+            return handleError(400, 'User is not an academy member');
           }
 
           if(classObj.classSize && classObj.classSize < classObj.attendees.length) {

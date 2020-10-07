@@ -11,6 +11,9 @@ custom:
   martialArts:
     handler: src/handlers/martialArtsHandler
     path: ${self:custom.version}/martialArts
+  payments:
+    handler: src/handlers/paymentsHandler
+    path: ${self:custom.version}/payments
   # academies:
   #   handler: src/handlers/academiesHandler
   #   path: ${self:custom.version}/academies
@@ -171,6 +174,48 @@ functions:
             parameters:
               paths:
                 id: true
+  createPaymentMethod:
+    handler: ${self:custom.payments.handler}.createPaymentMethod
+    events:
+      - http:
+          path: ${self:custom.payments.path}/paymentMethod
+          method: post
+  updatePaymentMethod:
+    handler: ${self:custom.payments.handler}.updatePaymentMethod
+    events:
+      - http:
+          path: ${self:custom.payments.path}/paymentMethod
+          method: put
+  listPaymentMethods:
+    handler: ${self:custom.payments.handler}.listPaymentMethods
+    events:
+      - http:
+          path: ${self:custom.payments.path}/paymentMethod
+          method: get
+  createSubscription:
+    handler: ${self:custom.payments.handler}.createSubscription
+    events:
+      - http:
+          path: ${self:custom.payments.path}/subscription
+          method: post
+  updateSubscription:
+    handler: ${self:custom.payments.handler}.updateSubscription
+    events:
+      - http:
+          path: ${self:custom.payments.path}/subscription
+          method: put
+  cancelSubscription:
+    handler: ${self:custom.payments.handler}.cancelSubscription
+    events:
+      - http:
+          path: ${self:custom.payments.path}/subscription
+          method: delete
+  getProductsAndPricing:
+    handler: ${self:custom.payments.handler}.getProductsAndPricing
+    events:
+      - http:
+          path: ${self:custom.payments.path}/productsAndPricing
+          method: get
   # uploadAcademyImage:
   #   handler: ${self:custom.academies.handler}.uploadImage
   #   events:

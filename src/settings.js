@@ -14,6 +14,13 @@ let settings = {
     },
     mongo: {
         connectionString: env.MONGO_CONNECTION_STRING
+    },
+    membership: {
+        version: '1',
+        defaultMemberLimit: 5,
+        stripe: {
+          secretKey: env.STRIPE_SECRET || ''
+        }
     }
 };
 

@@ -26,6 +26,7 @@ class UserController extends BaseController {
         user.emailVerificationToken = undefined;
         user.emailExpiration = undefined;
         user.verified = undefined;
+        user.stripeCustomerId = undefined;
 
         return user;
     }
@@ -37,6 +38,7 @@ class UserController extends BaseController {
         user.emailVerificationToken = undefined;
         user.emailExpiration = undefined;
         user.verified = undefined;
+        user.stripeCustomerId = undefined;
 
         return user;
     }

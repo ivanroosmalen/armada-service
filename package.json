@@ -13,6 +13,7 @@
     "serverless-offline": "^5.7.3"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^1.9.0",
     "aws-sdk": "^2.714.2",
     "bcryptjs": "^2.4.3",
     "dotenv": "^8.0.0",
@@ -25,6 +26,7 @@
     "mongoose": "^5.6.4",
     "mongoose-geojson-schema": "^2.1.5",
     "mustache": "^4.0.1",
+    "stripe": "^8.107.0",
     "uuid": "^8.2.0"
   }
 }

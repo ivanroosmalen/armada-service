@@ -37,6 +37,7 @@ class UserService extends MongooseService {
       delete user.emailExpiration;
       delete user.verified;
       delete user.forgotPassword;
+      delete user.stripeCustomerId;
 
       return user;
   };
@@ -54,6 +55,7 @@ class UserService extends MongooseService {
 
       let user = await this.schema.findByIdAndUpdate(id, entity, {new: true});
       user.password = undefined;
+      user.stripeCustomerId = undefined;
       return user;
   };
 

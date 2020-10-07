@@ -34,7 +34,16 @@ if(!modelKeys || !modelKeys.length) {
           subcategory: String,
           level: String,
           startDate: Date
-      } ]
+      } ],
+      stripeCustomerId: { type: String },
+    });
+
+    let UserAcademyPaymentSchema = new Schema({
+      academyId: { type: String, required: true, unique: true },
+      userId: { type: String, required: true },
+      subscriptionId: { type: String },
+      status: { type: String },
+      lastUpdatedDate: { type: Date }
     });
 
     let JwtTokenSchema = new Schema({
@@ -78,7 +87,9 @@ if(!modelKeys || !modelKeys.length) {
         name: { type: String }
       } ],
       locations: { type: [ LocationSchema ] },
-      profileImg: String
+      profileImg: String,
+      website: String,
+      memberLimit: { type: Number }
     });
 
     let SchoolSchema = new Schema({
@@ -185,6 +196,7 @@ if(!modelKeys || !modelKeys.length) {
     mongoose.model('JwtToken', JwtTokenSchema);
     mongoose.model('AcademyRequest', AcademyRequestSchema);
     mongoose.model('Notification', NotifactionSchema);
+    mongoose.model('UserAcademyPayment', UserAcademyPaymentSchema)
 }
 
 module.exports = mongoose.models

@@ -88,6 +88,8 @@ class AcademyController extends BaseController {
                 thumbnailImg: user.thumbnailImg
             }];
 
+            academy.memberLimit = settings.membership.defaultMemberLimit;
+
             entity = await this.service.create(academy);
 
             let locations = [];
