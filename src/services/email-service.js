@@ -58,8 +58,22 @@ async function sendNotificationEmail(emails, notification, locale = 'en') {
   return sendEmail(emails, 'html', `Message from ${notification.academy.name} - Armada`, body)
 }
 
+async function sendSubscriptionEmail(emails, academy = {}, locale = 'en') {
+  let file = await fs.readFileSync(`./src/emailTemplates/subscription-${locale}.html`, "utf8");
+  let body = mustache.render(file, { academyName: academy.name, memberLimit: (academy.memberLimit === 10000 ? 'unlimited' : academy.memberLimit) } )
+  return sendEmail(emails, 'html', locale === 'en' ? 'Armada subscription created / updated' : 'Assinatura da Armada criada / atualizada', body)
+}
+
+async function sendSubscriptionCancelledEmail(emails, academy = {}, locale = 'en') {
+  let file = await fs.readFileSync(`./src/emailTemplates/subscriptionCancel-${locale}.html`, "utf8");
+  let body = mustache.render(file, { academyName: academy.name })
+  return sendEmail(emails, 'html', locale === 'en' ? 'Armada subscription cancelled' : 'Assinatura cancelada', body)
+}
+
 module.exports = {
     sendRegistrationEmail,
     sendForgotPasswordEmail,
-    sendNotificationEmail
+    sendNotificationEmail,
+    sendSubscriptionEmail,
+    sendSubscriptionCancelledEmail
 }

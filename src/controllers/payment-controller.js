@@ -1,4 +1,5 @@
 const BaseController = require('./base-controller.js');
+const emailService = require('../services/email-service.js');
 const { handleError } = require('../utils/error-handler.js');
 const settings = require('../settings.js');
 const stripe = require('stripe')(settings.membership.stripe.secretKey);
@@ -138,7 +139,7 @@ class PaymentController extends BaseController {
     }
 
     async createSubscription(event) {
-      let { priceId, academyId, paymentMethodId } = event.body;
+      let { priceId, academyId, paymentMethodId, locale } = event.body;
       let userId = event.user._id
 
       if(!priceId) {
@@ -187,11 +188,15 @@ class PaymentController extends BaseController {
       }
 
       academy.memberLimit = parseInt(product.metadata.members);
-
-      await Promise.all[
+      let ownerIds = academy.owners.map(owner => (owner._id));
+      promises = await Promise.all([
         this.service.create(userAcademyPayment),
-        this.academyService.update(academy._id, academy)
-      ]
+        this.academyService.update(academy._id, academy),
+        this.userService.listPrivate({_id: { $in: ownerIds }})
+      ])
+
+      let ownerEmails = promises[2].map(owner => (owner.email));
+      await emailService.sendSubscriptionEmail(ownerEmails, academy, locale);
 
       return {
           statusCode: 201,
@@ -202,7 +207,7 @@ class PaymentController extends BaseController {
     }
 
     async updateSubscription(event) {
-      let { priceId, academyId, paymentMethodId } = event.body;
+      let { priceId, academyId, paymentMethodId, locale } = event.body;
       let userId = event.user._id
 
       let promise = await Promise.all([
@@ -249,11 +254,15 @@ class PaymentController extends BaseController {
       );
 
       userAcademyPayment.status = subscription.status;
-
-      await Promise.all[
+      let ownerIds = academy.owners.map(owner => (owner._id));
+      let promises = await Promise.all([
         this.service.update(userAcademyPayment._id, userAcademyPayment),
-        this.academyService.update(academy._id, academy)
-      ]
+        this.academyService.update(academy._id, academy),
+        this.userService.listPrivate({_id: { $in: ownerIds }})
+      ])
+
+      let ownerEmails = promises[2].map(owner => (owner.email));
+      await emailService.sendSubscriptionEmail(ownerEmails, academy, locale);
 
       return {
           statusCode: 200,
@@ -264,7 +273,7 @@ class PaymentController extends BaseController {
     }
 
     async cancelSubscription(event) {
-      let { academyId } = event.body;
+      let { academyId, locale } = event.body;
       let userId = event.user._id
 
       let promise = await Promise.all([
@@ -287,10 +296,15 @@ class PaymentController extends BaseController {
       );
 
       academy.memberLimit = 5;
-      await Promise.all[
+      let ownerIds = academy.owners.map(owner => (owner._id));
+      let promises = await Promise.all([
         this.service.deleteById(userAcademyPayment._id),
-        this.academyService.update(academy._id, academy)
-      ]
+        this.academyService.update(academy._id, academy),
+        this.userService.listPrivate({_id: { $in: ownerIds }})
+      ])
+
+      let ownerEmails = promises[2].map(owner => (owner.email));
+      await emailService.sendSubscriptionCancelledEmail(ownerEmails, academy, locale);
 
       return {
           statusCode: 200,
@@ -349,6 +363,11 @@ class PaymentController extends BaseController {
                 entity: entity
             })
         };
+    }
+
+    async paymentWebhook(event) {
+
+      console.log(event.body)
     }
 
     async create(event) {

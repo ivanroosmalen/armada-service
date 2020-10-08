@@ -75,6 +75,10 @@ class UserService extends MongooseService {
       return this.schema.find(query, this.getExceptions(), params);
   };
 
+  async listPrivate(query, params) {
+      return this.schema.find(query, {}, params);
+  };
+
   async login(email, password) {
       let user = await this.schema.findOne({email: email});
       if(!user) {

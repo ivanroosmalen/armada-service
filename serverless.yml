@@ -226,6 +226,12 @@ functions:
             parameters:
               paths:
                 academyId: true
+  paymentWebhook:
+    handler: ${self:custom.payments.handler}.paymentWebhook
+    events:
+      - http:
+          path: ${self:custom.payments.path}/webhook
+          method: post
   # uploadAcademyImage:
   #   handler: ${self:custom.academies.handler}.uploadImage
   #   events:
