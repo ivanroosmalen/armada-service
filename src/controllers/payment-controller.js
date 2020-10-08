@@ -25,7 +25,10 @@ class PaymentController extends BaseController {
       }
 
       try {
-        let pm = await stripe.paymentMethods.create(paymentMethod);
+        let pm = await stripe.paymentMethods.create({
+          type: 'card',
+          card: { token: paymentMethod.tokenId }
+        });
 
         if(!user.stripeCustomerId) {
           let customer = await stripe.customers.create({
@@ -54,7 +57,7 @@ class PaymentController extends BaseController {
       }
 
       return {
-          statusCode: 200,
+          statusCode: 201,
           body: JSON.stringify({
               message: 'Payment method created',
           })
@@ -191,7 +194,7 @@ class PaymentController extends BaseController {
       ]
 
       return {
-          statusCode: 200,
+          statusCode: 201,
           body: JSON.stringify({
               message: 'Subscription created',
           })
@@ -215,7 +218,7 @@ class PaymentController extends BaseController {
         return handleError(401, 'Unauthorized');
       }
 
-      let userAcademyPayment = await this.service.findUserAcademyPaymentByAcademyIdAndUserId(academyId, userId);
+      let userAcademyPayment = await this.service.findUserAcademyPaymentByAcademyId(academyId);
 
       let subscription = await stripe.subscriptions.retrieve(
         userAcademyPayment.subscriptionId
@@ -277,7 +280,7 @@ class PaymentController extends BaseController {
         return handleError(401, 'Unauthorized');
       }
 
-      let userAcademyPayment = await this.service.findUserAcademyPaymentByAcademyIdAndUserId(academyId, userId);
+      let userAcademyPayment = await this.service.findUserAcademyPaymentByAcademyId(academyId);
 
       const subscription = await stripe.subscriptions.del(
         userAcademyPayment.subscriptionId
@@ -318,6 +321,34 @@ class PaymentController extends BaseController {
               entities: productPrices
           })
       };
+    }
+
+    async getUserAcademyPayment(event) {
+        let { academyId } = event.pathParameters;
+        let userId = event.user._id
+
+        let promise = await Promise.all([
+          this.userService.findById(userId),
+          this.academyService.findById(academyId)
+        ]);
+
+        let user = promise[0];
+        let academy = promise[1];
+        let isAcademyOwner = academy && academy.owners.find(owner => (owner._id === userId));
+
+        if(!(user && isAcademyOwner)) {
+          return handleError(401, 'Unauthorized');
+        }
+
+        let entity = await this.service.findUserAcademyPaymentByAcademyId(academyId);
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Retrieved user-academy-payment',
+                entity: entity
+            })
+        };
     }
 
     async create(event) {
