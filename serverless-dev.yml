@@ -55,6 +55,7 @@ provider:
   runtime: nodejs10.x
   environment: ${file(./serverless.env.yml):${opt:stage, 'dev'}}
   role: arn:aws:iam::302314551855:role/Armada
+  timeout: 15
 
 functions:
   uploadUserImage:

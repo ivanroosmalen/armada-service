@@ -67,6 +67,10 @@ class AcademyRequestController extends BaseController {
               return handleError(400, 'Unable to handle this request');
             }
 
+            if(event.body.approved && academy.memberLimit === academy.students.length) {
+              return handleError(403, 'Unable to handle this request');
+            }
+
             academyRequest.approved = event.body.approved;
             academyRequest.complete = true;
 
