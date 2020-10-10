@@ -70,10 +70,17 @@ async function sendSubscriptionCancelledEmail(emails, academy = {}, locale = 'en
   return sendEmail(emails, 'html', locale === 'en' ? 'Armada subscription cancelled' : 'Assinatura cancelada', body)
 }
 
+async function sendIncompleteSubscriptionEmail(emails, academy, locale = 'en') {
+  let file = await fs.readFileSync(`./src/emailTemplates/badSubscription-${locale}.html`, "utf8");
+  let body = mustache.render(file, { academyName: academy.name, academyId: academy._id })
+  return sendEmail(emails, 'html', 'Subscription incomplete', body)
+}
+
 module.exports = {
     sendRegistrationEmail,
     sendForgotPasswordEmail,
     sendNotificationEmail,
     sendSubscriptionEmail,
-    sendSubscriptionCancelledEmail
+    sendSubscriptionCancelledEmail,
+    sendIncompleteSubscriptionEmail
 }

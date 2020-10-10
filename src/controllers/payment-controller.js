@@ -366,8 +366,43 @@ class PaymentController extends BaseController {
     }
 
     async paymentWebhook(event) {
+      if(!event.body) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({
+                message: 'Unprocessable event'
+            })
+        };
+      }
 
-      console.log(event.body)
+      if(event.body.data.object.object === 'subscription') {
+        if(event.body.data.object.status !== 'active') {
+          let userAcademyPayment = await this.service.findUserAcademyPaymentBySubscriptionId(event.body.data.object.id);
+          if(!userAcademyPayment) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    message: 'UserAcademyPayment does not exist in our system'
+                })
+            };
+          }
+
+          let academy = await this.academyService.findById(userAcademyPayment.academyId)
+          userAcademyPayment.status = event.body.data.object.status;
+
+          await Promise.all([
+            emailService.sendIncompleteSubscriptionEmail(['irw.vanroosmalen@gmail.com', 'contact@armadama.com'], academy),
+            this.service.updateUserAcademyPayment(userAcademyPayment._id, userAcademyPayment)
+          ])
+        }
+      }
+
+      return {
+          statusCode: 200,
+          body: JSON.stringify({
+              message: 'success'
+          })
+      };
     }
 
     async create(event) {

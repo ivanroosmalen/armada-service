@@ -15,6 +15,10 @@ class PaymentService extends MongooseService {
       return this.schema.create(userAcademyPayment);
   };
 
+  async updateUserAcademyPayment(id, userAcademyPayment) {
+      return this.update(id, userAcademyPayment)
+  };
+
   async findUserAcademyPaymentByAcademyIdAndUserId(academyId, userId) {
       if(!academyId || !userId) {
           throw new Error('Must pass in an academy id and userId');
@@ -29,6 +33,14 @@ class PaymentService extends MongooseService {
       }
 
       return this.schema.findOne({ academyId });
+  };
+
+  async findUserAcademyPaymentBySubscriptionId(subscriptionId) {
+      if(!subscriptionId) {
+          throw new Error('Must pass in an subscription id');
+      }
+
+      return this.schema.findOne({ subscriptionId });
   };
 
 }
