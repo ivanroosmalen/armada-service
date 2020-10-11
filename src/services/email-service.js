@@ -15,7 +15,7 @@ function sendEmail(emails, type = 'text', subject, body) {
         Data: subject
        }
       },
-    Source: 'noreply@armadama.com',
+    Source: 'Armada MA <noreply@armadama.com>',
     ReplyToAddresses: [
        'noreply@armadama.com'
     ],
@@ -76,11 +76,25 @@ async function sendIncompleteSubscriptionEmail(emails, academy, locale = 'en') {
   return sendEmail(emails, 'html', 'Subscription incomplete', body)
 }
 
+async function sendRegistrationFromAcademyEmail(emails, data, locale = 'en') {
+  let file = await fs.readFileSync(`./src/emailTemplates/registrationFromAcademy-${locale}.html`, "utf8");
+  let body = mustache.render(file, { password: data.newPassword, academyName: data.academy.name })
+  return sendEmail(emails, 'html', locale === 'en' ? `${data.academy.name} membership - Welcome to Armada MA!` : `Filiação de ${data.academy.name} - Bem vindo a Armada MA!`, body)
+}
+
+async function sendJoinFromAcademyEmail(emails, data, locale = 'en') {
+  let file = await fs.readFileSync(`./src/emailTemplates/joinFromAcademy-${locale}.html`, "utf8");
+  let body = mustache.render(file, { academyName: data.academy.name })
+  return sendEmail(emails, 'html', locale === 'en' ? `You are now a member of ${data.academy.name} - Armada MA` : `Você agora é um membro de ${data.academy.name} - Armada MA`, body)
+}
+
 module.exports = {
     sendRegistrationEmail,
     sendForgotPasswordEmail,
     sendNotificationEmail,
     sendSubscriptionEmail,
     sendSubscriptionCancelledEmail,
-    sendIncompleteSubscriptionEmail
+    sendIncompleteSubscriptionEmail,
+    sendRegistrationFromAcademyEmail,
+    sendJoinFromAcademyEmail
 }

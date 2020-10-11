@@ -80,16 +80,7 @@ class AcademyRequestController extends BaseController {
               let student = academy.students.find(student => (student._id === academyRequest.user._id));
               if(!student) {
                 let user = await this.userService.findById(academyRequest.user._id);
-                let newStudent = {
-                  _id: user._id,
-                  alias: user.alias,
-                  firstName: user.firstName,
-                  lastName: user.lastName,
-                  thumbnailImg: user.thumbnailImg
-                };
-                academy.students = academy.students || [];
-                academy.students.push(newStudent);
-                await this.academyService.update(academy._id, academy);
+                await this.academyService.addNewMember(user, academy);
               }
             }
 

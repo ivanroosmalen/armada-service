@@ -183,6 +183,79 @@ class UserController extends BaseController {
         };
     };
 
+    async registerByAcademy(event) {
+        if(!event || !event.body || !event.body.email || !event.body.alias || !event.body.academyId) {
+            return handleError(400, 'You need to pass a valid object');
+        }
+
+        let entity;
+        let body = event.body;
+        let user;
+        let academy;
+        try {
+            let promises = await Promise.all([
+              this.service.findOneByParams({ email: body.email }),
+              this.academyService.findById(event.body.academyId)
+            ])
+
+            user = promises[0];
+            academy = promises[1];
+
+            if(!academy) {
+              return handleError(500, 'Academy does not exist');
+            }
+
+            if(!academy.owners.find(owner => owner._id === event.user._id)) {
+                return handleError(401, 'Unauthorized');
+            }
+
+            if(academy.memberLimit === academy.students.length) {
+              return handleError(403, 'Member limit reached');
+            }
+
+            if(user) {
+                if(academy.students.find(member => member._id.toString() === user._id.toString())) {
+                  return handleError(403, 'User is already a member');
+                }
+
+                await this.academyService.addNewMember(user, academy);
+
+                await emailService.sendJoinFromAcademyEmail([body.email], {academy}, event.body.locale);
+                return {
+                    statusCode: 200,
+                    body: JSON.stringify({
+                        message: 'User added',
+                        entity:{}
+                    })
+                };
+            }
+
+            body.emailVerificationToken = uuidv4();
+            body.emailExpiration = moment().add(1, 'hours');
+            body.verified = false;
+            body.admin = false
+            body.academyId = undefined;
+
+            let newPassword = Math.floor(1000 + Math.random() * 9000);
+            body.password = bcrypt.hashSync(newPassword.toString(), settings.auth.saltRounds);
+
+            entity = await this.service.create(body);
+
+            await this.academyService.addNewMember(entity, academy);
+            await emailService.sendRegistrationFromAcademyEmail([body.email], {newPassword, academy}, event.body.locale);
+        } catch(e) {
+            return handleError(500, 'Unable to register', e);
+        }
+
+        return {
+            statusCode: 201,
+            body: JSON.stringify({
+                message: 'User added',
+                entity: {}
+            })
+        };
+    };
+
     async forgotPassword(event) {
         if(!event || !event.body || !event.body.email) {
             return handleError(400, 'Cannot send email');

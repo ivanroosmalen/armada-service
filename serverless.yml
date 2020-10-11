@@ -14,21 +14,24 @@ custom:
   payments:
     handler: src/handlers/paymentsHandler
     path: ${self:custom.version}/payments
-  # academies:
-  #   handler: src/handlers/academiesHandler
-  #   path: ${self:custom.version}/academies
-  # locations:
-  #   handler: src/handlers/locationsHandler
-  #   path: ${self:custom.version}/locations
-  # scheduleItems:
-  #   handler: src/handlers/scheduleItemsHandler
-  #   path: ${self:custom.version}/scheduleItems
-  # classes:
-  #   handler: src/handlers/classesHandler
-  #   path: ${self:custom.version}/classes
-  # academyRequests:
-  #   handler: src/handlers/academyRequestsHandler
-  #   path: ${self:custom.version}/academyRequests
+  academies:
+    handler: src/handlers/academiesHandler
+    path: ${self:custom.version}/academies
+  locations:
+    handler: src/handlers/locationsHandler
+    path: ${self:custom.version}/locations
+  scheduleItems:
+    handler: src/handlers/scheduleItemsHandler
+    path: ${self:custom.version}/scheduleItems
+  classes:
+    handler: src/handlers/classesHandler
+    path: ${self:custom.version}/classes
+  academyRequests:
+    handler: src/handlers/academyRequestsHandler
+    path: ${self:custom.version}/academyRequests
+  notifications:
+    handler: src/handlers/notificationsHandler
+    path: ${self:custom.version}/notifications
   cors:
     origins:
       - 'https://ls20sku8fd.execute-api.us-east-1.amazonaws.com*'
@@ -66,6 +69,12 @@ functions:
     events:
       - http:
           path: ${self:custom.users.path}/register
+          method: post
+  registerByAcademy:
+    handler: ${self:custom.users.handler}.registerByAcademy
+    events:
+      - http:
+          path: ${self:custom.users.path}/registerByAcademy
           method: post
   forgotPassword:
     handler: ${self:custom.users.handler}.forgotPassword
@@ -233,231 +242,273 @@ functions:
       - http:
           path: ${self:custom.payments.path}/webhook
           method: post
-  # uploadAcademyImage:
-  #   handler: ${self:custom.academies.handler}.uploadImage
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academies.path}/{id}/{type}
-  #         method: post
-  # createAcademies:
-  #   handler: ${self:custom.academies.handler}.create
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academies.path}
-  #         method: post
-  # updateAcademies:
-  #   handler: ${self:custom.academies.handler}.update
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academies.path}/{id}
-  #         method: put
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # getAcademies:
-  #   handler: ${self:custom.academies.handler}.get
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academies.path}/{id}
-  #         method: get
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # listAcademies:
-  #   handler: ${self:custom.academies.handler}.list
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academies.path}
-  #         method: get
-  # deleteAcademies:
-  #   handler: ${self:custom.academies.handler}.delete
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academies.path}/{id}
-  #         method: delete
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # getUserAcademies:
-  #   handler: ${self:custom.academies.handler}.getUserAcademies
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academies.path}/byUser/{id}
-  #         method: get
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # cancelAcademyMembership:
-  #   handler: ${self:custom.academies.handler}.cancelMembership
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academies.path}/cancel/{id}
-  #         method: patch
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # createLocations:
-  #   handler: ${self:custom.locations.handler}.create
-  #   events:
-  #     - http:
-  #         path: ${self:custom.locations.path}
-  #         method: post
-  # updateLocations:
-  #   handler: ${self:custom.locations.handler}.update
-  #   events:
-  #     - http:
-  #         path: ${self:custom.locations.path}/{id}
-  #         method: put
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # getLocations:
-  #   handler: ${self:custom.locations.handler}.get
-  #   events:
-  #     - http:
-  #         path: ${self:custom.locations.path}/{id}
-  #         method: get
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # listLocations:
-  #   handler: ${self:custom.locations.handler}.list
-  #   events:
-  #     - http:
-  #         path: ${self:custom.locations.path}
-  #         method: get
-  # deleteLocations:
-  #   handler: ${self:custom.locations.handler}.delete
-  #   events:
-  #     - http:
-  #         path: ${self:custom.locations.path}/{id}
-  #         method: delete
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # createClasses:
-  #   handler: ${self:custom.classes.handler}.create
-  #   events:
-  #     - http:
-  #         path: ${self:custom.classes.path}
-  #         method: post
-  # attendClasses:
-  #   handler: ${self:custom.classes.handler}.attend
-  #   events:
-  #     - http:
-  #         path: ${self:custom.classes.path}/attend
-  #         method: patch
-  # unattendClasses:
-  #   handler: ${self:custom.classes.handler}.unattend
-  #   events:
-  #     - http:
-  #         path: ${self:custom.classes.path}/unattend
-  #         method: patch
-  # updateClasses:
-  #   handler: ${self:custom.classes.handler}.update
-  #   events:
-  #     - http:
-  #         path: ${self:custom.classes.path}/{id}
-  #         method: put
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # getClasses:
-  #   handler: ${self:custom.classes.handler}.get
-  #   events:
-  #     - http:
-  #         path: ${self:custom.classes.path}/{id}
-  #         method: get
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # listClasses:
-  #   handler: ${self:custom.classes.handler}.list
-  #   events:
-  #     - http:
-  #         path: ${self:custom.classes.path}
-  #         method: get
-  # deleteClasses:
-  #   handler: ${self:custom.classes.handler}.delete
-  #   events:
-  #     - http:
-  #         path: ${self:custom.classes.path}/{id}
-  #         method: delete
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # createAcademyRequests:
-  #   handler: ${self:custom.academyRequests.handler}.create
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academyRequests.path}
-  #         method: post
-  # updateAcademyRequests:
-  #   handler: ${self:custom.academyRequests.handler}.update
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academyRequests.path}/{id}
-  #         method: put
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # getAcademyRequests:
-  #   handler: ${self:custom.academyRequests.handler}.get
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academyRequests.path}/{id}
-  #         method: get
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # getAcademyRequestByAcademyId:
-  #   handler: ${self:custom.academyRequests.handler}.getByAcademyId
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academyRequests.path}/byAcademyId/{id}
-  #         method: get
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # listAcademyRequests:
-  #   handler: ${self:custom.academyRequests.handler}.list
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academyRequests.path}
-  #         method: get
-  # deleteAcademyRequests:
-  #   handler: ${self:custom.academyRequests.handler}.delete
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academyRequests.path}/{id}
-  #         method: delete
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
-  # approveAcademyRequests:
-  #   handler: ${self:custom.academyRequests.handler}.approve
-  #   events:
-  #     - http:
-  #         path: ${self:custom.academyRequests.path}/approve/{id}
-  #         method: patch
-  #         request:
-  #           parameters:
-  #             paths:
-  #               id: true
+  uploadAcademyImage:
+    handler: ${self:custom.academies.handler}.uploadImage
+    events:
+      - http:
+          path: ${self:custom.academies.path}/{id}/{type}
+          method: post
+  createAcademies:
+    handler: ${self:custom.academies.handler}.create
+    events:
+      - http:
+          path: ${self:custom.academies.path}
+          method: post
+  updateAcademies:
+    handler: ${self:custom.academies.handler}.update
+    events:
+      - http:
+          path: ${self:custom.academies.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getAcademies:
+    handler: ${self:custom.academies.handler}.get
+    events:
+      - http:
+          path: ${self:custom.academies.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listAcademies:
+    handler: ${self:custom.academies.handler}.list
+    events:
+      - http:
+          path: ${self:custom.academies.path}
+          method: get
+  deleteAcademies:
+    handler: ${self:custom.academies.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.academies.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  getUserAcademies:
+    handler: ${self:custom.academies.handler}.getUserAcademies
+    events:
+      - http:
+          path: ${self:custom.academies.path}/byUser/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  cancelAcademyMembership:
+    handler: ${self:custom.academies.handler}.cancelMembership
+    events:
+      - http:
+          path: ${self:custom.academies.path}/cancel/{id}
+          method: patch
+          request:
+            parameters:
+              paths:
+                id: true
+  createLocations:
+    handler: ${self:custom.locations.handler}.create
+    events:
+      - http:
+          path: ${self:custom.locations.path}
+          method: post
+  updateLocations:
+    handler: ${self:custom.locations.handler}.update
+    events:
+      - http:
+          path: ${self:custom.locations.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getLocations:
+    handler: ${self:custom.locations.handler}.get
+    events:
+      - http:
+          path: ${self:custom.locations.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listLocations:
+    handler: ${self:custom.locations.handler}.list
+    events:
+      - http:
+          path: ${self:custom.locations.path}
+          method: get
+  deleteLocations:
+    handler: ${self:custom.locations.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.locations.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  createClasses:
+    handler: ${self:custom.classes.handler}.create
+    events:
+      - http:
+          path: ${self:custom.classes.path}
+          method: post
+  attendClasses:
+    handler: ${self:custom.classes.handler}.attend
+    events:
+      - http:
+          path: ${self:custom.classes.path}/attend
+          method: patch
+  unattendClasses:
+    handler: ${self:custom.classes.handler}.unattend
+    events:
+      - http:
+          path: ${self:custom.classes.path}/unattend
+          method: patch
+  updateClasses:
+    handler: ${self:custom.classes.handler}.update
+    events:
+      - http:
+          path: ${self:custom.classes.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getClasses:
+    handler: ${self:custom.classes.handler}.get
+    events:
+      - http:
+          path: ${self:custom.classes.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listClasses:
+    handler: ${self:custom.classes.handler}.list
+    events:
+      - http:
+          path: ${self:custom.classes.path}
+          method: get
+  deleteClasses:
+    handler: ${self:custom.classes.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.classes.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  createAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.create
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}
+          method: post
+  updateAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.update
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.get
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  getAcademyRequestByAcademyId:
+    handler: ${self:custom.academyRequests.handler}.getByAcademyId
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/byAcademyId/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.list
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}
+          method: get
+  deleteAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  approveAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.approve
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/approve/{id}
+          method: patch
+          request:
+            parameters:
+              paths:
+                id: true
+  createNotifications:
+    handler: ${self:custom.notifications.handler}.create
+    events:
+      - http:
+          path: ${self:custom.notifications.path}
+          method: post
+  updateNotifications:
+    handler: ${self:custom.notifications.handler}.update
+    events:
+      - http:
+          path: ${self:custom.notifications.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getNotifications:
+    handler: ${self:custom.notifications.handler}.get
+    events:
+      - http:
+          path: ${self:custom.notifications.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listNotifications:
+    handler: ${self:custom.notifications.handler}.list
+    events:
+      - http:
+          path: ${self:custom.notifications.path}
+          method: get
+  deleteNotifications:
+    handler: ${self:custom.notifications.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.notifications.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
 plugins:
   - serverless-offline

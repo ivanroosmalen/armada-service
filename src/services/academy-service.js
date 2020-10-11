@@ -68,6 +68,19 @@ class AcademyService extends MongooseService {
     return entity;
   }
 
+  async addNewMember(user, academy) {
+    let newMember = {
+      _id: user._id,
+      alias: user.alias,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      thumbnailImg: user.thumbnailImg
+    };
+    academy.students = academy.students || [];
+    academy.students.push(newMember);
+    await this.update(academy._id, academy);
+  }
+
 }
 
 module.exports = AcademyService
