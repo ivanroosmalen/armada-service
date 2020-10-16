@@ -2,6 +2,7 @@ const { v1: uuid } = require('uuid');
 const jwt = require('jsonwebtoken');
 const settings = require('../settings');
 const MongooseService = require('./mongoose-service');
+const { JwtToken } = require('../models/models.js');
 
 class TokenService extends MongooseService {
 
@@ -67,4 +68,4 @@ class TokenService extends MongooseService {
 
 }
 
-module.exports = TokenService;
+module.exports = new TokenService(JwtToken);

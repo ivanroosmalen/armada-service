@@ -1,3 +1,5 @@
+//DEPRECATED
+
 const BaseController = require('./base-controller.js');
 const { handleError } = require('../utils/error-handler.js');
 const settings = require('../settings.js');
@@ -80,7 +82,8 @@ class AcademyRequestController extends BaseController {
               let student = academy.students.find(student => (student._id === academyRequest.user._id));
               if(!student) {
                 let user = await this.userService.findById(academyRequest.user._id);
-                await this.academyService.addNewMember(user, academy);
+                let newMember = this.userService.getCondensedUser(user);
+                await this.academyService.addNewMember(newMember, academy);
               }
             }
 

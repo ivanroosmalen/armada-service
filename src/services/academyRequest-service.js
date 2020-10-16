@@ -1,4 +1,5 @@
 const MongooseService = require('./mongoose-service');
+const { AcademyRequest } = require('../models/models.js');
 const settings = require('../settings');
 
 class AcademyRequestService extends MongooseService {
@@ -30,4 +31,4 @@ class AcademyRequestService extends MongooseService {
 
 }
 
-module.exports = AcademyRequestService
+module.exports = new AcademyRequestService(AcademyRequest)

@@ -1,19 +1,11 @@
 
-service: armada-user # NOTE: update this with your service name
+service: armada-academy # NOTE: update this with your service name
 #app: your-app-name
 #tenant: your-tenant-name
 
 custom:
   version: v1
   users:
-    handler: src/handlers/usersHandler
-    path: ${self:custom.version}/users
-  martialArts:
-    handler: src/handlers/martialArtsHandler
-    path: ${self:custom.version}/martialArts
-  payments:
-    handler: src/handlers/paymentsHandler
-    path: ${self:custom.version}/payments
   academies:
     handler: src/handlers/academiesHandler
     path: ${self:custom.version}/academies
@@ -29,12 +21,15 @@ custom:
   academyRequests:
     handler: src/handlers/academyRequestsHandler
     path: ${self:custom.version}/academyRequests
+  academyMembers:
+    handler: src/handlers/academyMembersHandler
+    path: ${self:custom.version}/academyMembers
   notifications:
     handler: src/handlers/notificationsHandler
     path: ${self:custom.version}/notifications
   cors:
     origins:
-      - 'https://ls20sku8fd.execute-api.us-east-1.amazonaws.com*'
+      - 'https://7h3t72u9r0.execute-api.us-east-1.amazonaws.com*'
       - 'http://localhost*'
     headers:
       - Content-Type
@@ -58,190 +53,6 @@ provider:
   timeout: 15
 
 functions:
-  uploadUserImage:
-    handler: ${self:custom.users.handler}.uploadImage
-    events:
-      - http:
-          path: ${self:custom.users.path}/{id}/{type}
-          method: post
-  register:
-    handler: ${self:custom.users.handler}.register
-    events:
-      - http:
-          path: ${self:custom.users.path}/register
-          method: post
-  registerByAcademy:
-    handler: ${self:custom.users.handler}.registerByAcademy
-    events:
-      - http:
-          path: ${self:custom.users.path}/registerByAcademy
-          method: post
-  forgotPassword:
-    handler: ${self:custom.users.handler}.forgotPassword
-    events:
-      - http:
-          path: ${self:custom.users.path}/forgotPassword
-          method: post
-  updatePassword:
-    handler: ${self:custom.users.handler}.updatePassword
-    events:
-      - http:
-          path: ${self:custom.users.path}/updatePassword/{id}
-          method: patch
-  login:
-    handler: ${self:custom.users.handler}.login
-    events:
-      - http:
-          path: ${self:custom.users.path}/login
-          method: post
-  logout:
-    handler: ${self:custom.users.handler}.logout
-    events:
-      - http:
-          path: ${self:custom.users.path}/logout
-          method: get
-  createUser:
-    handler: ${self:custom.users.handler}.create
-    events:
-      - http:
-          path: ${self:custom.users.path}
-          method: post
-  updateUser:
-    handler: ${self:custom.users.handler}.update
-    events:
-      - http:
-          path: ${self:custom.users.path}/{id}
-          method: put
-          request:
-            parameters:
-              paths:
-                id: true
-  getUser:
-    handler: ${self:custom.users.handler}.get
-    events:
-      - http:
-          path: ${self:custom.users.path}/{id}
-          method: get
-          request:
-            parameters:
-              paths:
-                id: true
-  listUsers:
-    handler: ${self:custom.users.handler}.list
-    events:
-      - http:
-          path: ${self:custom.users.path}
-          method: get
-  deleteUser:
-    handler: ${self:custom.users.handler}.delete
-    events:
-      - http:
-          path: ${self:custom.users.path}/{id}
-          method: delete
-          request:
-            parameters:
-              paths:
-                id: true
-  createMartialArts:
-    handler: ${self:custom.martialArts.handler}.create
-    events:
-      - http:
-          path: ${self:custom.martialArts.path}
-          method: post
-  updateMartialArts:
-    handler: ${self:custom.martialArts.handler}.update
-    events:
-      - http:
-          path: ${self:custom.martialArts.path}/{id}
-          method: put
-          request:
-            parameters:
-              paths:
-                id: true
-  getMartialArts:
-    handler: ${self:custom.martialArts.handler}.get
-    events:
-      - http:
-          path: ${self:custom.martialArts.path}/{id}
-          method: get
-          request:
-            parameters:
-              paths:
-                id: true
-  listMartialArts:
-    handler: ${self:custom.martialArts.handler}.list
-    events:
-      - http:
-          path: ${self:custom.martialArts.path}
-          method: get
-  deleteMartialArts:
-    handler: ${self:custom.martialArts.handler}.delete
-    events:
-      - http:
-          path: ${self:custom.martialArts.path}/{id}
-          method: delete
-          request:
-            parameters:
-              paths:
-                id: true
-  createPaymentMethod:
-    handler: ${self:custom.payments.handler}.createPaymentMethod
-    events:
-      - http:
-          path: ${self:custom.payments.path}/paymentMethod
-          method: post
-  updatePaymentMethod:
-    handler: ${self:custom.payments.handler}.updatePaymentMethod
-    events:
-      - http:
-          path: ${self:custom.payments.path}/paymentMethod
-          method: put
-  listPaymentMethods:
-    handler: ${self:custom.payments.handler}.listPaymentMethods
-    events:
-      - http:
-          path: ${self:custom.payments.path}/paymentMethod
-          method: get
-  createSubscription:
-    handler: ${self:custom.payments.handler}.createSubscription
-    events:
-      - http:
-          path: ${self:custom.payments.path}/subscription
-          method: post
-  updateSubscription:
-    handler: ${self:custom.payments.handler}.updateSubscription
-    events:
-      - http:
-          path: ${self:custom.payments.path}/subscription
-          method: put
-  cancelSubscription:
-    handler: ${self:custom.payments.handler}.cancelSubscription
-    events:
-      - http:
-          path: ${self:custom.payments.path}/subscription
-          method: delete
-  getProductsAndPricing:
-    handler: ${self:custom.payments.handler}.getProductsAndPricing
-    events:
-      - http:
-          path: ${self:custom.payments.path}/productsAndPricing
-          method: get
-  getUserAcademyPayment:
-    handler: ${self:custom.payments.handler}.getUserAcademyPayment
-    events:
-      - http:
-          path: ${self:custom.payments.path}/userAcademyPayment/{academyId}
-          method: get
-          request:
-            parameters:
-              paths:
-                academyId: true
-  paymentWebhook:
-    handler: ${self:custom.payments.handler}.paymentWebhook
-    events:
-      - http:
-          path: ${self:custom.payments.path}/webhook
-          method: post
   uploadAcademyImage:
     handler: ${self:custom.academies.handler}.uploadImage
     events:
@@ -406,14 +217,26 @@ functions:
             parameters:
               paths:
                 id: true
+  getAttendanceMetrics:
+    handler: ${self:custom.classes.handler}.getAttendanceMetrics
+    events:
+      - http:
+          path: ${self:custom.classes.path}/metrics/attendance
+          method: get
+  getTotalAttendanceMetrics:
+    handler: ${self:custom.classes.handler}.getTotalAttendanceMetrics
+    events:
+      - http:
+          path: ${self:custom.classes.path}/metrics/totalAttendance
+          method: get
   createAcademyRequests:
-    handler: ${self:custom.academyRequests.handler}.create
+    handler: ${self:custom.academyMembers.handler}.create
     events:
       - http:
           path: ${self:custom.academyRequests.path}
           method: post
   updateAcademyRequests:
-    handler: ${self:custom.academyRequests.handler}.update
+    handler: ${self:custom.academyMembers.handler}.update
     events:
       - http:
           path: ${self:custom.academyRequests.path}/{id}
@@ -423,7 +246,7 @@ functions:
               paths:
                 id: true
   getAcademyRequests:
-    handler: ${self:custom.academyRequests.handler}.get
+    handler: ${self:custom.academyMembers.handler}.get
     events:
       - http:
           path: ${self:custom.academyRequests.path}/{id}
@@ -433,7 +256,7 @@ functions:
               paths:
                 id: true
   getAcademyRequestByAcademyId:
-    handler: ${self:custom.academyRequests.handler}.getByAcademyId
+    handler: ${self:custom.academyMembers.handler}.getRequestsByAcademyId
     events:
       - http:
           path: ${self:custom.academyRequests.path}/byAcademyId/{id}
@@ -443,13 +266,13 @@ functions:
               paths:
                 id: true
   listAcademyRequests:
-    handler: ${self:custom.academyRequests.handler}.list
+    handler: ${self:custom.academyMembers.handler}.listRequests
     events:
       - http:
           path: ${self:custom.academyRequests.path}
           method: get
   deleteAcademyRequests:
-    handler: ${self:custom.academyRequests.handler}.delete
+    handler: ${self:custom.academyMembers.handler}.delete
     events:
       - http:
           path: ${self:custom.academyRequests.path}/{id}
@@ -459,10 +282,20 @@ functions:
               paths:
                 id: true
   approveAcademyRequests:
-    handler: ${self:custom.academyRequests.handler}.approve
+    handler: ${self:custom.academyMembers.handler}.approve
     events:
       - http:
           path: ${self:custom.academyRequests.path}/approve/{id}
+          method: patch
+          request:
+            parameters:
+              paths:
+                id: true
+  removeAcademyMember:
+    handler: ${self:custom.academyMembers.handler}.removeAcademyMember
+    events:
+      - http:
+          path: ${self:custom.academyMembers.path}/{id}
           method: patch
           request:
             parameters:

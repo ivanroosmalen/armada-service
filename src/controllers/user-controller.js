@@ -2,6 +2,7 @@ const BaseController = require('./base-controller.js');
 const emailService = require('../services/email-service.js');
 const authUtils = require('../utils/auth-utils.js');
 const { handleError } = require('../utils/error-handler.js');
+const { userUpdated } = require('../utils/userUpdate-utils.js');
 const settings = require('../settings.js');
 const moment = require('moment');
 const bcrypt = require('bcryptjs');
@@ -10,12 +11,11 @@ const AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 
 class UserController extends BaseController {
-    constructor(userService, tokenService, academyService, classService) {
+    constructor(userService, tokenService, academyService) {
         super(userService);
 
         this.tokenService = tokenService;
         this.academyService = academyService;
-        this.classService = classService;
     }
 
     cleanseUserResponse(user) {
@@ -87,8 +87,7 @@ class UserController extends BaseController {
 
           let updates = [
             this.service.update(id, this.cleanseUserPreSave(event.body)),
-            this.academyService.updateAcademyUser(id, dependentFields),
-            this.classService.updateClassUser(id, dependentFields),
+            userUpdated(id, dependentFields)
           ];
 
           let promises = await Promise.all(updates);
@@ -218,7 +217,8 @@ class UserController extends BaseController {
                   return handleError(403, 'User is already a member');
                 }
 
-                await this.academyService.addNewMember(user, academy);
+                let newMember = this.userService.getCondensedUser(user)
+                await this.academyService.addNewMember(newMember, academy);
 
                 await emailService.sendJoinFromAcademyEmail([body.email], {academy}, event.body.locale);
                 return {
@@ -241,7 +241,8 @@ class UserController extends BaseController {
 
             entity = await this.service.create(body);
 
-            await this.academyService.addNewMember(entity, academy);
+            let newMember = this.userService.getCondensedUser(entity);
+            await this.academyService.addNewMember(newMember, academy);
             await emailService.sendRegistrationFromAcademyEmail([body.email], {newPassword, academy}, event.body.locale);
         } catch(e) {
             return handleError(500, 'Unable to register', e);
@@ -363,8 +364,7 @@ class UserController extends BaseController {
               entity.thumbnailImg = uploadURL.split('?')[0];
 
               updates = [
-                this.academyService.updateAcademyUser(id, { thumbnailImg: entity.thumbnailImg }),
-                this.classService.updateClassUser(id, { thumbnailImg: entity.thumbnailImg })
+                userUpdated(id, { thumbnailImg: entity.thumbnailImg })
               ];
           }
 

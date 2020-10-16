@@ -218,6 +218,8 @@ class AcademyController extends BaseController {
         };
     }
 
+
+    //DEPRECATED
     async cancelMembership(event) {
       if(!event.pathParameters || !event.pathParameters.id) {
           return handleError(400, 'You need to pass entity info to update an entity');

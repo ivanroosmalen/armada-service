@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const MongooseService = require('./mongoose-service');
+const { User } = require('../models/models.js');
 const settings = require('../settings');
 
 class UserService extends MongooseService {
@@ -104,6 +105,15 @@ class UserService extends MongooseService {
       return user.jwt;
   };
 
+  async getCondensedUser(user) {
+    return {
+      _id: user._id,
+      alias: user.alias,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      thumbnailImg: user.thumbnailImg
+    };
+  }
 }
 
-module.exports = UserService
+module.exports = new UserService(User)

@@ -1,4 +1,5 @@
 const MongooseService = require('./mongoose-service');
+const { UserAcademyPayment } = require('../models/models.js');
 const settings = require('../settings');
 
 class PaymentService extends MongooseService {
@@ -45,4 +46,4 @@ class PaymentService extends MongooseService {
 
 }
 
-module.exports = PaymentService
+module.exports = new PaymentService(UserAcademyPayment)

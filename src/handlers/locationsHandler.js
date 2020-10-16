@@ -11,7 +11,7 @@ const handler = getHandler({
         validation: { schema: Location },
         type: 'mongoose'
     },
-    controller: new BaseController( new LocationService(Location)),
+    controller: new BaseController(location),
     customRoutes: {
     }
 }, settings);

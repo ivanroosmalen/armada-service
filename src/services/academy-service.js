@@ -1,4 +1,5 @@
 const MongooseService = require('./mongoose-service');
+const { Academy } = require('../models/models.js');
 const settings = require('../settings');
 
 class AcademyService extends MongooseService {
@@ -29,7 +30,7 @@ class AcademyService extends MongooseService {
       return this.schema.find({ 'owners._id': userId });
   };
 
-  async updateAcademyUser(userId, fields) {
+  async updateUser(userId, fields) {
     let userFields = ['owners', 'instructors', 'students']
     let academies = await this.findByUserId(userId);
 
@@ -68,19 +69,11 @@ class AcademyService extends MongooseService {
     return entity;
   }
 
-  async addNewMember(user, academy) {
-    let newMember = {
-      _id: user._id,
-      alias: user.alias,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      thumbnailImg: user.thumbnailImg
-    };
+  async addNewMember(newMember, academy) {
     academy.students = academy.students || [];
     academy.students.push(newMember);
     await this.update(academy._id, academy);
   }
-
 }
 
-module.exports = AcademyService
+module.exports = new AcademyService(Academy)

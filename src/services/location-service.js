@@ -1,5 +1,6 @@
 const settings = require('../settings');
 const MongooseService = require('./mongoose-service');
+const { Location } = require('../models/models.js');
 
 class LocationService extends MongooseService {
 
@@ -54,4 +55,4 @@ class LocationService extends MongooseService {
   };
 }
 
-module.exports = LocationService;
+module.exports = new LocationService(Location);

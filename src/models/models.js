@@ -169,6 +169,24 @@ if(!modelKeys || !modelKeys.length) {
       complete: Boolean
     });
 
+    let AcademyMemberSchema = new Schema({
+      academy: {
+          _id: { type: String },
+          name: { type: String }
+      },
+      user: {
+        _id: String,
+        alias: String,
+        firstName: String,
+        lastName: String,
+        thumbnailImg: String
+      },
+      martialArts: [ String ],
+      isOwner: Boolean,
+      isManager: Boolean,
+      isInstructor: Boolean
+    });
+
     let NotifactionSchema = new Schema({
         message: { type: String },
         academy: {
@@ -197,6 +215,7 @@ if(!modelKeys || !modelKeys.length) {
     mongoose.model('AcademyRequest', AcademyRequestSchema);
     mongoose.model('Notification', NotifactionSchema);
     mongoose.model('UserAcademyPayment', UserAcademyPaymentSchema)
+    mongoose.model('AcademyMember', AcademyMemberSchema)
 }
 
 module.exports = mongoose.models

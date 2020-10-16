@@ -1,4 +1,5 @@
 const MongooseService = require('./mongoose-service');
+const { Class } = require('../models/models.js');
 const settings = require('../settings');
 
 class ClassService extends MongooseService {
@@ -36,7 +37,7 @@ class ClassService extends MongooseService {
       });
   };
 
-  async updateClassUser(userId, fields) {
+  async userUpdated(userId, fields) {
     let userFields = ['instructors', 'attendees']
     let classes = await this.findByUserId(userId);
 
@@ -61,4 +62,4 @@ class ClassService extends MongooseService {
   }
 }
 
-module.exports = ClassService
+module.exports = new ClassService(Class)

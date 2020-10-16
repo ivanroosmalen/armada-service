@@ -1,15 +1,12 @@
 const createError = require('http-errors');
 const { HttpError } = createError;
 const middy = require('middy');
-const TokenService = require('../services/token-service.js');
-const { JwtToken } = require('../models/models.js');
+const tokenService = require('../services/token-service.js');
 const authUtils = require('./auth-utils.js');
 const { handleError } = require('./error-handler.js');
 const {
     validator
 } = require('middy/middlewares');
-
-const tokenService = new TokenService(JwtToken);
 
 function defineMiddlewareStack(controllerRoute, middlewares = []) {
     return middlewares.reduce((stack, middleware) => stack.use(middleware), middy(controllerRoute));
