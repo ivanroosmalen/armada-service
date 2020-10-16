@@ -230,13 +230,13 @@ functions:
           path: ${self:custom.classes.path}/metrics/totalAttendance
           method: get
   createAcademyRequests:
-    handler: ${self:custom.academyMembers.handler}.create
+    handler: ${self:custom.academyRequests.handler}.create
     events:
       - http:
           path: ${self:custom.academyRequests.path}
           method: post
   updateAcademyRequests:
-    handler: ${self:custom.academyMembers.handler}.update
+    handler: ${self:custom.academyRequests.handler}.update
     events:
       - http:
           path: ${self:custom.academyRequests.path}/{id}
@@ -246,7 +246,7 @@ functions:
               paths:
                 id: true
   getAcademyRequests:
-    handler: ${self:custom.academyMembers.handler}.get
+    handler: ${self:custom.academyRequests.handler}.get
     events:
       - http:
           path: ${self:custom.academyRequests.path}/{id}
@@ -256,7 +256,7 @@ functions:
               paths:
                 id: true
   getAcademyRequestByAcademyId:
-    handler: ${self:custom.academyMembers.handler}.getRequestsByAcademyId
+    handler: ${self:custom.academyRequests.handler}.getByAcademyId
     events:
       - http:
           path: ${self:custom.academyRequests.path}/byAcademyId/{id}
@@ -266,13 +266,13 @@ functions:
               paths:
                 id: true
   listAcademyRequests:
-    handler: ${self:custom.academyMembers.handler}.listRequests
+    handler: ${self:custom.academyRequests.handler}.list
     events:
       - http:
           path: ${self:custom.academyRequests.path}
           method: get
   deleteAcademyRequests:
-    handler: ${self:custom.academyMembers.handler}.delete
+    handler: ${self:custom.academyRequests.handler}.delete
     events:
       - http:
           path: ${self:custom.academyRequests.path}/{id}
@@ -282,7 +282,7 @@ functions:
               paths:
                 id: true
   approveAcademyRequests:
-    handler: ${self:custom.academyMembers.handler}.approve
+    handler: ${self:custom.academyRequests.handler}.approve
     events:
       - http:
           path: ${self:custom.academyRequests.path}/approve/{id}

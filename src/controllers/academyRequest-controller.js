@@ -8,10 +8,11 @@ const AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 
 class AcademyRequestController extends BaseController {
-    constructor(academyRequestService, userService, academyService) {
+    constructor(academyRequestService, userService, academyService, academyMemberService) {
         super(academyRequestService);
         this.userService = userService;
         this.academyService = academyService;
+        this.academyMemberService = academyMemberService;
     }
 
     async create(event) {
@@ -83,7 +84,18 @@ class AcademyRequestController extends BaseController {
               if(!student) {
                 let user = await this.userService.findById(academyRequest.user._id);
                 let newMember = this.userService.getCondensedUser(user);
-                await this.academyService.addNewMember(newMember, academy);
+
+                let academyMember = {
+                  user: newMember,
+                  academy: {
+                    _id: academy._id,
+                    name: academy.name
+                  }
+                };
+                await Promise.all([
+                  this.academyService.addNewMember(newMember, academy),
+                  this.academyMemberService.create(academyMember)
+                ]);
               }
             }
 
