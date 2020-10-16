@@ -112,7 +112,7 @@ functions:
               paths:
                 id: true
   cancelAcademyMembership:
-    handler: ${self:custom.academies.handler}.cancelMembership
+    handler: ${self:custom.academyMembers.handler}.removeAcademyMember
     events:
       - http:
           path: ${self:custom.academies.path}/cancel/{id}
