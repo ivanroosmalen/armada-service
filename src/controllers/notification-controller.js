@@ -45,7 +45,9 @@ class NotificationController extends BaseController {
 
             entity = await this.service.create(notification);
 
-            let emails = academy.students.map(member => (member.email))
+            let userIds = academy.students.map(member => (member._id));
+            let users = await this.userService.list({ _id: { $in: userIds}}, {}, true);
+            let emails = users.map(user => (user.email));
 
             //TODO update for handling portuguese emails
             await emailService.sendNotificationEmail(emails, entity);
