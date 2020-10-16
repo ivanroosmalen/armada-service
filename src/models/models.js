@@ -174,7 +174,7 @@ if(!modelKeys || !modelKeys.length) {
           _id: { type: String },
           name: { type: String }
       },
-      user: {
+      member: {
         _id: String,
         alias: String,
         firstName: String,
