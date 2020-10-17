@@ -105,7 +105,7 @@ class UserService extends MongooseService {
       return user.jwt;
   };
 
-  async getCondensedUser(user) {
+  getCondensedUser(user) {
     return {
       _id: user._id,
       alias: user.alias,

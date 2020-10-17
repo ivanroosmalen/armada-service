@@ -12,9 +12,6 @@ custom:
   locations:
     handler: src/handlers/locationsHandler
     path: ${self:custom.version}/locations
-  scheduleItems:
-    handler: src/handlers/scheduleItemsHandler
-    path: ${self:custom.version}/scheduleItems
   classes:
     handler: src/handlers/classesHandler
     path: ${self:custom.version}/classes
@@ -323,7 +320,6 @@ functions:
       - http:
           path: ${self:custom.academyMembers.path}
           method: get
-
   removeAcademyMember:
     handler: ${self:custom.academyMembers.handler}.removeAcademyMember
     events:
@@ -346,16 +342,6 @@ functions:
       - http:
           path: ${self:custom.notifications.path}/{id}
           method: put
-          request:
-            parameters:
-              paths:
-                id: true
-  getNotifications:
-    handler: ${self:custom.notifications.handler}.get
-    events:
-      - http:
-          path: ${self:custom.notifications.path}/{id}
-          method: get
           request:
             parameters:
               paths:

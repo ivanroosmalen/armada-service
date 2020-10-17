@@ -40,7 +40,8 @@ class MongooseService {
       }
 
       entity.lastUpdatedDate = new Date();
-
+      console.log(id)
+      console.log(entity)
       return this.schema.findByIdAndUpdate(id, entity, {new: true});
   };
 

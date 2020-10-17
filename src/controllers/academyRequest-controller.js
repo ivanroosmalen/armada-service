@@ -86,16 +86,18 @@ class AcademyRequestController extends BaseController {
                 let newMember = this.userService.getCondensedUser(user);
 
                 let academyMember = {
-                  user: newMember,
+                  member: newMember,
                   academy: {
                     _id: academy._id,
                     name: academy.name
                   }
                 };
-                await Promise.all([
+
+                let promises = await Promise.all([
                   this.academyService.addNewMember(newMember, academy),
                   this.academyMemberService.create(academyMember)
                 ]);
+
               }
             }
 

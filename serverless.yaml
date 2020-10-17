@@ -1,0 +1,250 @@
+
+service: armada-misc # NOTE: update this with your service name
+#app: your-app-name
+#tenant: your-tenant-name
+
+custom:
+  version: v1
+  users:
+  classes:
+    handler: src/handlers/classesHandler
+    path: ${self:custom.version}/classes
+  notifications:
+    handler: src/handlers/notificationsHandler
+    path: ${self:custom.version}/notifications
+  academyRequests:
+    handler: src/handlers/academyRequestsHandler
+    path: ${self:custom.version}/academyRequests
+  academyMembers:
+    handler: src/handlers/academyMembersHandler
+    path: ${self:custom.version}/academyMembers
+  cors:
+    origins:
+      - 'https://ylecnr73sf.execute-api.us-east-1.amazonaws.com*'
+      - 'http://localhost*'
+    headers:
+      - Content-Type
+      - X-Amz-Date
+      - Authorization
+      - X-Api-Key
+      - X-Amz-Security-Token
+      - X-Amz-User-Agent
+      - X-Amz-User-Agent
+      - Access-Control-Allow-Origin
+      - X-Xsrf-Token
+      - Api-Key
+      - Cookie
+    allowCredentials: true
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  environment: ${file(./serverless.env.yml):${opt:stage, 'dev'}}
+  role: arn:aws:iam::302314551855:role/Armada
+  timeout: 15
+
+functions:
+  createAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.create
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}
+          method: post
+  updateAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.update
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.get
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  getAcademyRequestByAcademyId:
+    handler: ${self:custom.academyRequests.handler}.getByAcademyId
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/byAcademyId/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.list
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}
+          method: get
+  deleteAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  approveAcademyRequests:
+    handler: ${self:custom.academyRequests.handler}.approve
+    events:
+      - http:
+          path: ${self:custom.academyRequests.path}/approve/{id}
+          method: patch
+          request:
+            parameters:
+              paths:
+                id: true
+  createAcademyMember:
+    handler: ${self:custom.academyMembers.handler}.create
+    events:
+      - http:
+          path: ${self:custom.academyMembers.path}
+          method: post
+  updateAcademyMember:
+    handler: ${self:custom.academyMembers.handler}.update
+    events:
+      - http:
+          path: ${self:custom.academyMembers.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getAcademyMember:
+    handler: ${self:custom.academyMembers.handler}.get
+    events:
+      - http:
+          path: ${self:custom.academyMembers.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listAcademyMember:
+    handler: ${self:custom.academyMembers.handler}.list
+    events:
+      - http:
+          path: ${self:custom.academyMembers.path}
+          method: get
+  removeAcademyMember:
+    handler: ${self:custom.academyMembers.handler}.removeAcademyMember
+    events:
+      - http:
+          path: ${self:custom.academyMembers.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  createClasses:
+    handler: ${self:custom.classes.handler}.create
+    events:
+      - http:
+          path: ${self:custom.classes.path}
+          method: post
+  attendClasses:
+    handler: ${self:custom.classes.handler}.attend
+    events:
+      - http:
+          path: ${self:custom.classes.path}/attend
+          method: patch
+  unattendClasses:
+    handler: ${self:custom.classes.handler}.unattend
+    events:
+      - http:
+          path: ${self:custom.classes.path}/unattend
+          method: patch
+  updateClasses:
+    handler: ${self:custom.classes.handler}.update
+    events:
+      - http:
+          path: ${self:custom.classes.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  getClasses:
+    handler: ${self:custom.classes.handler}.get
+    events:
+      - http:
+          path: ${self:custom.classes.path}/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+  listClasses:
+    handler: ${self:custom.classes.handler}.list
+    events:
+      - http:
+          path: ${self:custom.classes.path}
+          method: get
+  deleteClasses:
+    handler: ${self:custom.classes.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.classes.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+  getAttendanceMetrics:
+    handler: ${self:custom.classes.handler}.getAttendanceMetrics
+    events:
+      - http:
+          path: ${self:custom.classes.path}/metrics/attendance
+          method: get
+  getTotalAttendanceMetrics:
+    handler: ${self:custom.classes.handler}.getTotalAttendanceMetrics
+    events:
+      - http:
+          path: ${self:custom.classes.path}/metrics/totalAttendance
+          method: get
+  createNotifications:
+    handler: ${self:custom.notifications.handler}.create
+    events:
+      - http:
+          path: ${self:custom.notifications.path}
+          method: post
+  updateNotifications:
+    handler: ${self:custom.notifications.handler}.update
+    events:
+      - http:
+          path: ${self:custom.notifications.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  listNotifications:
+    handler: ${self:custom.notifications.handler}.list
+    events:
+      - http:
+          path: ${self:custom.notifications.path}
+          method: get
+  deleteNotifications:
+    handler: ${self:custom.notifications.handler}.delete
+    events:
+      - http:
+          path: ${self:custom.notifications.path}/{id}
+          method: delete
+          request:
+            parameters:
+              paths:
+                id: true
+plugins:
+  - serverless-offline

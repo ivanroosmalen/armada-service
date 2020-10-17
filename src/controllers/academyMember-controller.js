@@ -69,8 +69,8 @@ class AcademyMemberController extends BaseController {
           academy.students.splice(index, 1);
 
           let promises = await Promise.all([
-            this.academyService.update(id, academy),
-            this.service.remove(academyMember._id)
+            this.academyService.update(academy._id, academy),
+            this.service.deleteById(academyMember._id)
           ])
       } catch(e) {
           return handleError(500, 'Unable to update entity', e);
