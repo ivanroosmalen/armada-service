@@ -20,10 +20,17 @@ class AcademyMemberController extends BaseController {
             return handleError(400, 'You need to pass a valid academyId');
         }
 
-        let academyId = event.queryStringParameters.academyId
+        let query = {
+          'academy._id': event.queryStringParameters.academyId
+        }
+
+        if(event.queryStringParameters.memberId) {
+          query['member._id'] = event.queryStringParameters.memberId;
+        }
+
         let entities;
         try {
-            entities = await this.service.list({'academy._id': academyId}, params)
+            entities = await this.service.list(query, params)
         } catch(e) {
             return handleError(500, 'Unable to find entities', e);
         }
@@ -37,41 +44,57 @@ class AcademyMemberController extends BaseController {
         };
     };
 
-    async removeAcademyMember(event) {
+    async update(event) {
+        if(!event || !event.body || !event.pathParameters || !event.pathParameters.id) {
+            return handleError(400, 'You need to pass entity info to update an entity');
+        }
+
+        let entity;
+        try {
+            let id = event.pathParameters.id;
+            let academyMember = await this.service.findById(id);
+            let isOwner = await this.service.findOne({ 'member._id': event.user._id, 'academy._id': academyMember.academy._id, 'isOwner': true });
+            if(!isOwner) {
+                return handleError(401, 'Unauthorized');
+            }
+
+            entity = await this.service.update(id, event.body);
+        } catch(e) {
+            return handleError(500, 'Unable to update entity', e);
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Entity updated',
+                entity
+            })
+        };
+    };
+
+    async delete(event) {
       if(!event.pathParameters || !event.pathParameters.id) {
           return handleError(400, 'You need to pass entity info to update an entity');
       }
 
-      let academy;
-      let academyMember
+      let academyMember;
+      let isOwner;
       let { id } = event.pathParameters;
       try {
           academyMember = await this.service.findById(id);
-          academy = await this.academyService.findById(academyMember.academy._id);
+          isOwner = await this.service.findOne({ 'member._id': event.user._id, 'academy._id': academyMember.academy._id, 'isOwner': true });
       } catch(e) {
           return handleError(500, 'Unable to find entity', e);
       }
 
-      let index;
-      let student = academy.students.find((student, i) => {
-        if(student._id === event.user._id) {
-          index = i;
+      let isRequestedMember = academyMember.member._id === event.user._id;
 
-          return true;
-        }
-      });
-
-      if(!student) {
+      if(!isOwner && !isRequestedMember) {
           return handleError(401, 'Unauthorized');
       }
 
       try {
-          academy.students.splice(index, 1);
-
-          let promises = await Promise.all([
-            this.academyService.update(academy._id, academy),
-            this.service.deleteById(academyMember._id)
-          ])
+          await this.service.deleteById(academyMember._id)
       } catch(e) {
           return handleError(500, 'Unable to update entity', e);
       }

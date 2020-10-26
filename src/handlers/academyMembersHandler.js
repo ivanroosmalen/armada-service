@@ -16,8 +16,7 @@ const handler = getHandler({
     },
     controller: new AcademyMemberController( academyMemberService, academyRequestService, userService, academyService),
     customRoutes: {
-        list: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors),  authentication(), errorHandler()],
-        removeAcademyMember: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors),  authentication(), errorHandler()]
+        list: [doNotWaitForEmptyEventLoop(), httpHeaderNormalizer(), cors(settings.cors),  authentication(), errorHandler()]
     }
 }, settings);
 

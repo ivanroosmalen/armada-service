@@ -18,9 +18,6 @@ custom:
   academyRequests:
     handler: src/handlers/academyRequestsHandler
     path: ${self:custom.version}/academyRequests
-  academyMembers:
-    handler: src/handlers/academyMembersHandler
-    path: ${self:custom.version}/academyMembers
   notifications:
     handler: src/handlers/notificationsHandler
     path: ${self:custom.version}/notifications
@@ -109,7 +106,7 @@ functions:
               paths:
                 id: true
   cancelAcademyMembership:
-    handler: ${self:custom.academyMembers.handler}.removeAcademyMember
+    handler: ${self:custom.academies.handler}.cancelMembership
     events:
       - http:
           path: ${self:custom.academies.path}/cancel/{id}
@@ -284,48 +281,6 @@ functions:
       - http:
           path: ${self:custom.academyRequests.path}/approve/{id}
           method: patch
-          request:
-            parameters:
-              paths:
-                id: true
-  createAcademyMember:
-    handler: ${self:custom.academyMembers.handler}.create
-    events:
-      - http:
-          path: ${self:custom.academyMembers.path}
-          method: post
-  updateAcademyMember:
-    handler: ${self:custom.academyMembers.handler}.update
-    events:
-      - http:
-          path: ${self:custom.academyMembers.path}/{id}
-          method: put
-          request:
-            parameters:
-              paths:
-                id: true
-  getAcademyMember:
-    handler: ${self:custom.academyMembers.handler}.get
-    events:
-      - http:
-          path: ${self:custom.academyMembers.path}/{id}
-          method: get
-          request:
-            parameters:
-              paths:
-                id: true
-  listAcademyMember:
-    handler: ${self:custom.academyMembers.handler}.list
-    events:
-      - http:
-          path: ${self:custom.academyMembers.path}
-          method: get
-  removeAcademyMember:
-    handler: ${self:custom.academyMembers.handler}.removeAcademyMember
-    events:
-      - http:
-          path: ${self:custom.academyMembers.path}/{id}
-          method: delete
           request:
             parameters:
               paths:

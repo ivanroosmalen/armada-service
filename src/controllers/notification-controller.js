@@ -4,10 +4,11 @@ const { handleError } = require('../utils/error-handler.js');
 const settings = require('../settings.js');
 
 class NotificationController extends BaseController {
-    constructor(notificationService, userService, academyService) {
+    constructor(notificationService, userService, academyService, academyMemberService) {
         super(notificationService);
         this.userService = userService;
         this.academyService = academyService;
+        this.academyMemberService = academyMemberService;
     }
 
     async create(event) {
@@ -17,35 +18,28 @@ class NotificationController extends BaseController {
 
         let entity;
         try {
-            let academy = await this.academyService.findById(event.body.academy._id)
-            if(!academy) {
-              return handleError(400, 'Academy does not exist', e);
-            }
+            let promises = await Promise.all([
+              this.academyMemberService.findOne({ 'member._id': event.user._id,'academy._id': event.body.academy._id, isOwner: true }),
+              this.academyMemberService.list({ 'academy._id': event.body.academy._id }),
+              this.userService.findById(event.user._id)
+            ])
+            let academyMember = promises[0];
+            let academyMembers = promises[1];
+            let user = promises[2];
 
-            if(!this.isAuthorizedByOwnership(academy, event.user)) {
+            if(!(academyMember || event.user.admin === true )) {
               return handleError(401, 'Unauthorized');
             }
 
-            let user = await this.userService.findById(event.user._id);
             let notification = event.body;
 
-            notification.academy = {
-              _id: academy._id,
-              name: academy.name
-            };
-
-            notification.user = {
-              _id: user._id,
-              alias: user.alias,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              thumbnailImg: user.thumbnailImg
-            };
+            notification.academy = academyMember.academy;
+            notification.user = academyMember.member;
             notification.createdDate = new Date();
 
             entity = await this.service.create(notification);
 
-            let userIds = academy.students.map(member => (member._id));
+            let userIds = academyMembers.map(member => member.member._id);
             let users = await this.userService.list({ _id: { $in: userIds}}, {}, true);
             let emails = users.map(user => (user.email));
 
@@ -76,12 +70,8 @@ class NotificationController extends BaseController {
               return handleError(400, 'Notification does not exist', e);
             }
 
-            let academy = await this.academyService.findById(notification.academy._id)
-            if(!academy) {
-              return handleError(400, 'Academy does not exist', e);
-            }
-
-            if(!this.isAuthorizedByOwnership(academy, event.user)) {
+            let academyOwner = this.academyMemberService.findOne({ 'member._id': event.user._id,'academy._id': notification.academy._id, isOwner: true });
+            if(!(academyOwner || event.user.admin === true )) {
               return handleError(401, 'Unauthorized');
             }
 
@@ -112,28 +102,16 @@ class NotificationController extends BaseController {
 
         let entities;
         try {
-            let promiseFuncs = [];
-            for(let academyId of academyIds) {
-              promiseFuncs.push(this.academyService.list(
-                {
-                  _id: academyId,
-                  $or: [
-                    { 'owners._id': event.user._id },
-                    { 'instructors._id': event.user._id },
-                    { 'students._id': event.user._id }
-                  ]
-                }
-              ));
-            }
-            let promises = await Promise.all(promiseFuncs);
-
-            for(let academies of promises) {
-                if(!academies || !academies.length) {
-                    return handleError(500, 'User is not a member of all requested academies');
-                }
+            let memberAcademies = await this.academyMemberService.list({ 'member._id': event.user._id,'academy._id': { $in: academyIds }});
+            if(!(memberAcademies && memberAcademies.length)) {
+                return handleError(500, 'User is not a member of these academies');
             }
 
-            entities = await this.service.list({ 'academy._id': { $in: academyIds } }, { sort: { createdDate: -1 } });
+            let filteredIds = academyIds.filter(id => {
+              return !!memberAcademies.find(ma => ma.academy._id === id)
+            })
+
+            entities = await this.service.list({ 'academy._id': { $in: filteredIds } }, { sort: { createdDate: -1 } });
         } catch(e) {
            return handleError(500, 'Unable to find entities', e);
         }
@@ -180,12 +158,8 @@ class NotificationController extends BaseController {
               return handleError(400, 'Notification does not exist', e);
             }
 
-            let academy = await this.academyService.findById(notification.academy._id)
-            if(!academy) {
-              return handleError(400, 'Academy does not exist', e);
-            }
-
-            if(!this.isAuthorizedByOwnership(academy, event.user)) {
+            let academyOwner = this.academyMemberService.findOne({ 'member._id': event.user._id,'academy._id': notification.academy._id, isOwner: true });
+            if(!(academyOwner || event.user.admin === true )) {
               return handleError(401, 'Unauthorized');
             }
 
@@ -201,11 +175,6 @@ class NotificationController extends BaseController {
             })
         };
     };
-
-    isAuthorizedByOwnership(academy, user) {
-        return ((academy.owners && academy.owners.find(owner => (owner._id.toString() === user._id.toString()))) || user.admin === true)
-    }
-
 }
 
 module.exports = NotificationController

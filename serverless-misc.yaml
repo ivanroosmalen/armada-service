@@ -139,7 +139,7 @@ functions:
           path: ${self:custom.academyMembers.path}
           method: get
   removeAcademyMember:
-    handler: ${self:custom.academyMembers.handler}.removeAcademyMember
+    handler: ${self:custom.academyMembers.handler}.delete
     events:
       - http:
           path: ${self:custom.academyMembers.path}/{id}

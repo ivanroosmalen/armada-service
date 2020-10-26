@@ -3,6 +3,7 @@ const { User } = require('../models/models.js');
 const { getHandler } = require('./baseHandler.js');
 const userService = require('../services/user-service.js');
 const academyService = require('../services/academy-service.js');
+const academyMemberService = require('../services/academyMember-service.js');
 const UserController = require('../controllers/user-controller.js');
 const tokenService = require('../services/token-service.js');
 const { errorHandler, authentication } = require('../utils/middleware.js');
@@ -13,7 +14,7 @@ const handler = getHandler({
         validation: { schema: User },
         type: 'mongoose'
     },
-    controller: new UserController(userService, tokenService, academyService),
+    controller: new UserController(userService, tokenService, academyService, academyMemberService),
     customRoutes: {
         register: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), errorHandler()],
         registerByAcademy: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],

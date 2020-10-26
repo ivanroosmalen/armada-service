@@ -5,6 +5,7 @@ const ClassController = require('../controllers/class-controller.js');
 const classService = require('../services/class-service.js');
 const userService = require('../services/user-service.js');
 const academyService = require('../services/academy-service.js');
+const academyMemberService = require('../services/academyMember-service.js');
 const { errorHandler, authentication } = require('../utils/middleware.js');
 const { jsonBodyParser, doNotWaitForEmptyEventLoop, cors, httpHeaderNormalizer } = require('middy/middlewares');
 
@@ -13,7 +14,7 @@ const handler = getHandler({
         validation: { schema: Class },
         type: 'mongoose'
     },
-    controller: new ClassController(classService, userService, academyService),
+    controller: new ClassController(classService, userService, academyService, academyMemberService),
     customRoutes: {
         attend: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],
         unattend: [doNotWaitForEmptyEventLoop(), jsonBodyParser(), httpHeaderNormalizer(), cors(settings.cors), authentication(), errorHandler()],

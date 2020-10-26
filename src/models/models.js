@@ -92,6 +92,24 @@ if(!modelKeys || !modelKeys.length) {
       memberLimit: { type: Number }
     });
 
+    let AcademyMemberSchema = new Schema({
+      academy: {
+          _id: { type: String },
+          name: { type: String }
+      },
+      member: {
+        _id: String,
+        alias: String,
+        firstName: String,
+        lastName: String,
+        thumbnailImg: String
+      },
+      martialArts: [ String ],
+      isOwner: Boolean,
+      isManager: Boolean,
+      isInstructor: Boolean
+    });
+
     let SchoolSchema = new Schema({
       founders: {
         type: [{
@@ -125,7 +143,8 @@ if(!modelKeys || !modelKeys.length) {
         alias: String,
         firstName: String,
         lastName: String,
-        thumbnailImg: String
+        thumbnailImg: String,
+        academyMember: { type: AcademyMemberSchema }
       }],
       attendees: [{
         _id: String,
@@ -133,7 +152,8 @@ if(!modelKeys || !modelKeys.length) {
         firstName: String,
         lastName: String,
         thumbnailImg: String,
-        online: Boolean
+        online: Boolean,
+        academyMember: { type: AcademyMemberSchema }
       }],
       classSize: { type: Number },
       onlineClassSize: { type: Number },
@@ -169,24 +189,6 @@ if(!modelKeys || !modelKeys.length) {
       complete: Boolean
     });
 
-    let AcademyMemberSchema = new Schema({
-      academy: {
-          _id: { type: String },
-          name: { type: String }
-      },
-      member: {
-        _id: String,
-        alias: String,
-        firstName: String,
-        lastName: String,
-        thumbnailImg: String
-      },
-      martialArts: [ String ],
-      isOwner: Boolean,
-      isManager: Boolean,
-      isInstructor: Boolean
-    });
-
     let NotifactionSchema = new Schema({
         message: { type: String },
         academy: {
@@ -214,8 +216,8 @@ if(!modelKeys || !modelKeys.length) {
     mongoose.model('JwtToken', JwtTokenSchema);
     mongoose.model('AcademyRequest', AcademyRequestSchema);
     mongoose.model('Notification', NotifactionSchema);
-    mongoose.model('UserAcademyPayment', UserAcademyPaymentSchema)
-    mongoose.model('AcademyMember', AcademyMemberSchema)
+    mongoose.model('UserAcademyPayment', UserAcademyPaymentSchema);
+    mongoose.model('AcademyMember', AcademyMemberSchema);
 }
 
 module.exports = mongoose.models

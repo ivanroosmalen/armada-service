@@ -4,11 +4,12 @@ const moment = require('moment-timezone');
 const settings = require('../settings.js');
 
 class ClassController extends BaseController {
-    constructor(classService, userService, academyService) {
+    constructor(classService, userService, academyService, academyMemberService) {
         super(classService);
 
         this.userService = userService;
         this.academyService = academyService;
+        this.academyMemberService = academyMemberService;
     }
 
     async list(event) {
@@ -114,7 +115,12 @@ class ClassController extends BaseController {
               $and: [
                 {'schedule.startDate': { '$lte': endDate }},
                 {'schedule.startDate': { '$gte': startDate }},
-                {'attendees._id': event.user._id}
+                {
+                  $or: [
+                    {'attendees._id': event.user._id}, // deprecated
+                    {'attendees.academyMember.member._id': event.user._id}
+                  ]
+                }
               ]
             };
 
@@ -144,8 +150,8 @@ class ClassController extends BaseController {
         let entities = { byWeek: {}, total: 0 };
 
         try {
-            let academies = await this.academyService.findByOwnerId(event.user._id);
-            if(!(academies && academies.length)) {
+            let ownerMemberships = await this.academyMemberService.list({ 'member._id': event.user._id, isOwner: true })
+            if(!(ownerMemberships && ownerMemberships.length)) {
               return handleError(401, 'Unauthorized', e);
             }
 
@@ -153,7 +159,7 @@ class ClassController extends BaseController {
               $and: [
                 {'schedule.startDate': { '$lte': endDate }},
                 {'schedule.startDate': { '$gte': startDate }},
-                {academyId: { '$in': academies.map(academy => academy._id) }}
+                {academyId: { '$in': ownerMemberships.map(member => member.academy._id) }}
               ]
             };
 
@@ -288,23 +294,17 @@ class ClassController extends BaseController {
         let entity;
         try {
           let promise = await Promise.all([
-            this.userService.findById(userId),
             this.service.findById(classId),
-            this.service.findByParentIdAndStartDate(classId, startDate),
-            this.academyService.getUserAcademies(userId)
+            this.service.findByParentIdAndStartDate(classId, startDate)
           ])
 
-          let user = promise[0];
-          let classObj = promise[1];
-          let existingClass = promise[2];
-          let userAcademies = promise[3] || {};
+          let classObj = promise[0];
+          let existingClass = promise[1];
 
-          if(!(user && classObj)) {
+          let academyMember = await this.academyMemberService.findOne({'member._id': userId, 'academy._id': classObj.academyId.toString()});
+
+          if(!(academyMember && classObj)) {
             return handleError(400, 'You need to pass a valid object');
-          }
-
-          if(!(userAcademies.student && userAcademies.student.find(academy => (academy._id.toString() === classObj.academyId.toString())))) {
-            return handleError(400, 'User is not an academy member');
           }
 
           if(classObj.classSize && classObj.classSize < classObj.attendees.length) {
@@ -319,16 +319,12 @@ class ClassController extends BaseController {
             classToUpdate = await this.createNewClassFromExisting(classObj, startDate, endDate);
           }
 
-          let attendee = {
-            _id: user._id,
-            alias: user.alias,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            thumbnailImg: user.thumbnailImg,
-            online
-          }
+          let attendee = {};
+          Object.assign(attendee, academyMember.member);
+          attendee.online = online;
+          attendee.academyMember = academyMember;
 
-          let isAttending = classToUpdate.attendees && classToUpdate.attendees.find(attendee => (attendee._id.toString() === user._id.toString()));
+          let isAttending = classToUpdate.attendees && classToUpdate.attendees.find(attendee => (attendee.academyMember._id.toString() === academyMember._id.toString()));
           if(!isAttending) {
             classToUpdate.attendees = classToUpdate.attendees || [];
             classToUpdate.attendees.push(attendee);
@@ -361,7 +357,7 @@ class ClassController extends BaseController {
         let entity;
         try {
           let classObj = await this.service.findById(classId);
-          classObj.attendees = classObj.attendees && classObj.attendees.filter(attendee => (attendee._id !== userId));
+          classObj.attendees = classObj.attendees && classObj.attendees.filter(attendee => (attendee.academyMember.member._id !== userId));
           entity = await this.service.update(classObj._id, classObj);
         } catch(e) {
           return handleError(500, 'Unable to unattend event', e);
@@ -441,8 +437,8 @@ class ClassController extends BaseController {
     }
 
     async isAuthorizedByOwnership(classObj, user) {
-        let academy = await this.academyService.findById(classObj.academyId);
-        return ((academy.owners && academy.owners.find(owner => (owner._id.toString() === user._id.toString()))) || user.admin === true)
+        let ownerMemberships = await this.academyMemberService.findOne({ 'member._id': user._id,'academy._id': classObj.academyId, isOwner: true });
+        return (ownerMemberships || user.admin === true)
     }
 }
 

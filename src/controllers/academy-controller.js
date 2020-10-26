@@ -6,28 +6,43 @@ const AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 
 class AcademyController extends BaseController {
-    constructor(academyService, userService, locationService) {
+    constructor(academyService, academyMemberService, userService, locationService) {
         super(academyService);
+        this.academyMemberService = academyMemberService;
         this.userService = userService;
         this.locationService = locationService;
     }
 
     async getUserAcademies(event) {
-        let { id } = event.pathParameters;
-        let entity = {};
-        try {
-            entity = await this.service.getUserAcademies(id);
-        } catch(e) {
-            return handleError(500, 'Unable to find entities', e);
-        }
+      let { id } = event.pathParameters;
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                message: 'Entities listed',
-                entity: entity || []
-            })
-        };
+      let entity = {};
+      try {
+          let memberships = await this.academyMemberService.list({'member._id': id});
+          let academyIds = memberships.map(membership => membership.academy._id);
+          let academies = await this.service.list({ _id: { $in: academyIds } });
+
+          let ownerAcademyIds = memberships.filter(member => member.isOwner).map(member => member.academy._id.toString());
+          let ownerAcademies = academies.filter(academy => (ownerAcademyIds.indexOf(academy._id.toString()) !== -1))
+
+          let instructorAcademyIds = memberships.filter(member => member.isInstructor).map(member => member.academy._id.toString());
+          let instructorAcademies = academies.filter(academy => (instructorAcademyIds.indexOf(academy._id.toString()) !== -1))
+
+          entity.owner = ownerAcademies;
+          entity.instructor = instructorAcademies;
+          entity.student = academies;
+
+      } catch(e) {
+          return handleError(500, 'Unable to find entities', e);
+      }
+
+      return {
+          statusCode: 200,
+          body: JSON.stringify({
+              message: 'Entities listed',
+              entity: entity || {}
+          })
+      };
     };
 
     async list(event) {
@@ -74,23 +89,24 @@ class AcademyController extends BaseController {
                 return handleError(401, 'Unauthorized', e);
             }
 
-            academy.owners = [{
-                _id: user._id,
-                email: user.email,
-                alias: user.alias,
-                thumbnailImg: user.thumbnailImg
-            }];
-
-            academy.students = [{
-                _id: user._id,
-                email: user.email,
-                alias: user.alias,
-                thumbnailImg: user.thumbnailImg
-            }];
-
+            let condensedUser = this.userService.getCondensedUser(user);
+            academy.owners = [condensedUser];
+            academy.students = [condensedUser];
             academy.memberLimit = settings.membership.defaultMemberLimit;
 
             entity = await this.service.create(academy);
+
+            let academyMember = {
+              member: condensedUser,
+              academy: {
+                _id: entity.toObject()._id,
+                name: entity.toObject().name
+              },
+              isOwner: true,
+              isManager: true
+            }
+
+            await this.academyMemberService.create(academyMember);
 
             let locations = [];
             entity.toObject().locations && entity.toObject().locations.forEach(loc => {
@@ -177,15 +193,21 @@ class AcademyController extends BaseController {
         }
 
         let entity
+        let ownerMembership
         let { id, type } = event.pathParameters;
         try {
-            entity = await this.service.findById(id);
+            let promises = await Promise.all([
+              this.service.findById(id),
+              this.academyMemberService.findOne({ 'member._id': event.user._id, 'academy._id': id, isOwner: true })
+            ])
+            entity = promises[0];
+            ownerMembership = promises[1];
+
+            if(!ownerMembership && !event.user.admin) {
+                return handleError(401, 'Unauthorized');
+            }
         } catch(e) {
             return handleError(500, 'Unable to find entity', e);
-        }
-
-        if(!entity.owners.find(owner => owner._id === event.user._id) && !event.user.admin) {
-            return handleError(401, 'Unauthorized');
         }
 
         let uploadURL = ''
@@ -226,9 +248,11 @@ class AcademyController extends BaseController {
       }
 
       let entity;
+      let academyMember;
       let { id } = event.pathParameters;
       try {
           entity = await this.service.findById(id);
+          academyMember = await this.academyMemberService.findOne({ 'member._id': event.user._id, 'academy._id': id });
       } catch(e) {
           return handleError(500, 'Unable to find entity', e);
       }
@@ -249,6 +273,7 @@ class AcademyController extends BaseController {
       try {
           entity.students.splice(index, 1);
           entity = await this.service.update(id, entity);
+          await this.academyMemberService.deleteById(academyMember._id)
       } catch(e) {
           return handleError(500, 'Unable to update entity', e);
       }

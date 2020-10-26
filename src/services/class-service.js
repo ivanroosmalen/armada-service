@@ -37,7 +37,7 @@ class ClassService extends MongooseService {
       });
   };
 
-  async userUpdated(userId, fields) {
+  async updateUser(userId, fields) {
     let userFields = ['instructors', 'attendees']
     let classes = await this.findByUserId(userId);
 
@@ -45,8 +45,9 @@ class ClassService extends MongooseService {
     for(let classObj of classes) {
       for(let userField of userFields) {
         classObj[userField].forEach(user => {
-          if(user._id === userId) {
+          if(user.academyMember.member._id === userId) {
             Object.assign(user, fields)
+            Object.assign(user.academyMember.member, fields)
           }
         })
       }

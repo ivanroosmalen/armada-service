@@ -11,11 +11,12 @@ const AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 
 class UserController extends BaseController {
-    constructor(userService, tokenService, academyService) {
+    constructor(userService, tokenService, academyService, academyMemberService) {
         super(userService);
 
         this.tokenService = tokenService;
         this.academyService = academyService;
+        this.academyMemberService = academyMemberService;
     }
 
     cleanseUserResponse(user) {
@@ -191,34 +192,49 @@ class UserController extends BaseController {
         let body = event.body;
         let user;
         let academy;
+        let isOwner;
+        let academyMemberCount;
         try {
             let promises = await Promise.all([
               this.service.findOneByParams({ email: body.email }),
-              this.academyService.findById(event.body.academyId)
+              this.academyService.findById(event.body.academyId),
+              this.academyMemberService.findOne({ 'member._id': event.user._id, 'academy._id': event.body.academyId, 'isOwner': true }),
+              this.service.count({ 'academy._id': event.body.academyId })
             ])
 
             user = promises[0];
             academy = promises[1];
+            isOwner = promises[2];
+            academyMemberCount = promises[3] || 0;
 
             if(!academy) {
               return handleError(500, 'Academy does not exist');
             }
 
-            if(!academy.owners.find(owner => owner._id === event.user._id)) {
+            if(!isOwner) {
                 return handleError(401, 'Unauthorized');
             }
 
-            if(academy.memberLimit === academy.students.length) {
+            if(academy.memberLimit === academyMemberCount) {
               return handleError(403, 'Member limit reached');
             }
 
             if(user) {
-                if(academy.students.find(member => member._id.toString() === user._id.toString())) {
+                let member = await this.academyMemberService.findOne({ 'member._id': user._id, 'academy._id': academy._id });
+                if(member) {
                   return handleError(403, 'User is already a member');
                 }
 
-                let newMember = this.userService.getCondensedUser(user)
-                await this.academyService.addNewMember(newMember, academy);
+                let newMember = this.service.getCondensedUser(user)
+                let academyMember = {
+                  member: newMember,
+                  academy: {
+                    _id: academy._id,
+                    name: academy.name
+                  }
+                };
+
+                await this.academyMemberService.create(academyMember)
 
                 await emailService.sendJoinFromAcademyEmail([body.email], {academy}, event.body.locale);
                 return {
@@ -241,8 +257,17 @@ class UserController extends BaseController {
 
             entity = await this.service.create(body);
 
-            let newMember = this.userService.getCondensedUser(entity);
-            await this.academyService.addNewMember(newMember, academy);
+            let newMember = this.service.getCondensedUser(entity);
+            let academyMember = {
+              member: newMember,
+              academy: {
+                _id: academy._id,
+                name: academy.name
+              }
+            };
+
+            await this.academyMemberService.create(academyMember);
+
             await emailService.sendRegistrationFromAcademyEmail([body.email], {newPassword, academy}, event.body.locale);
         } catch(e) {
             return handleError(500, 'Unable to register', e);

@@ -3,7 +3,7 @@ const settings = require('../settings');
 const { Academy, AcademyMember } = require('../models/models.js');
 
 async function createAcademyMembers() {
-  await mongoose.connect('mongodb+srv://armada:Dr7yoe9uEOMfKeDp@armada.xvrlb.mongodb.net/armada?retryWrites=true&w=majority', {useNewUrlParser: true});
+  await mongoose.connect('mongodb+srv://armada:Dr7yoe9uEOMfKeDp@vanroosmalen-xvrlb.mongodb.net/test?retryWrites=true&w=majority', {useNewUrlParser: true});
 
   let academies = await Academy.find();
 

@@ -16,17 +16,33 @@ class AcademyMemberService extends MongooseService {
       return this.schema.find({ 'member._id': userId });
   };
 
-  async userUpdated(userId, entity) {
+  async findOne(query) {
+      if(!query) {
+          throw new Error('Must pass in a valid query');
+      }
+
+      return this.schema.findOne(query);
+  };
+
+  async updateUser(userId, entity) {
     let academyMembers = await this.findByUserId(userId);
 
     let updates = [];
-    for(let academyMembers of academyMember) {
-      Object.assign(academyMember, entity)
+    for(let academyMember of academyMembers) {
+      Object.assign(academyMember.member, entity)
       updates.push(this.update(academyMember._id, academyMember));
     }
 
     await Promise.all(updates);
   }
+
+  async deleteByMemberId(id) {
+      if(!id) {
+          throw new Error('Cannot delete an entity without a member id');
+      }
+
+      return this.schema.deleteOne({ 'member._id': id });
+  };
 
 }
 

@@ -40,8 +40,7 @@ class MongooseService {
       }
 
       entity.lastUpdatedDate = new Date();
-      console.log(id)
-      console.log(entity)
+
       return this.schema.findByIdAndUpdate(id, entity, {new: true});
   };
 
@@ -55,6 +54,10 @@ class MongooseService {
 
   async list(query, params) {
       return this.schema.find(query, {}, params);
+  };
+
+  async count(query) {
+      return this.schema.count(query);
   };
 
   async deleteById(id) {

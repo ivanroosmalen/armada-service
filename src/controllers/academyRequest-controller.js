@@ -58,11 +58,20 @@ class AcademyRequestController extends BaseController {
         let entity;
         try {
             let id = event.pathParameters.id;
-            let academies = await this.academyService.findByOwnerId(event.user._id);
             let academyRequest = await this.service.findById(id);
-            let academy = academies.find(academy => (academy._id.toString() === academyRequest.toObject().academy._id.toString()));
 
-            if(!academy) {
+            let academyId = academyRequest.toObject().academy._id;
+            let promises = await Promise.all([
+              this.academyMemberService.findOne({ 'member._id': event.user._id, 'academy._id': academyId, isOwner: true }),
+              this.academyMemberService.list({ 'academy._id': academyId }),
+              this.academyService.findById(academyId)
+            ])
+
+            let owner = promises[0];
+            let members = promises[1];
+            let academy = promises[2];
+
+            if(!academy || !owner) {
               return handleError(401, 'Unauthorized');
             }
 
@@ -70,7 +79,7 @@ class AcademyRequestController extends BaseController {
               return handleError(400, 'Unable to handle this request');
             }
 
-            if(event.body.approved && academy.memberLimit === academy.students.length) {
+            if(event.body.approved && academy.memberLimit === members.length) {
               return handleError(403, 'Unable to handle this request');
             }
 
@@ -80,7 +89,7 @@ class AcademyRequestController extends BaseController {
             entity = await this.service.update(id, academyRequest);
 
             if(academyRequest.approved) {
-              let student = academy.students.find(student => (student._id === academyRequest.user._id));
+              let student = members.find(member => (member.member._id === academyRequest.user._id));
               if(!student) {
                 let user = await this.userService.findById(academyRequest.user._id);
                 let newMember = this.userService.getCondensedUser(user);
@@ -119,10 +128,10 @@ class AcademyRequestController extends BaseController {
 
         let entities;
         try {
-            let academies = await this.academyService.findByOwnerId(event.user._id);
+            let ownerMemberships = await this.academyMemberService.list({ 'member._id': event.user._id, isOwner: true });
 
-            if(academies && academies.length) {
-              let academyIds = academies.map(academy => academy._id);
+            if(ownerMemberships && ownerMemberships.length) {
+              let academyIds = ownerMemberships.map(academyMember => academyMember.academy._id);
               let query = {
                 'academy._id': { $in : academyIds }
               }

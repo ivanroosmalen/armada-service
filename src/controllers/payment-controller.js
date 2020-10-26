@@ -5,11 +5,12 @@ const settings = require('../settings.js');
 const stripe = require('stripe')(settings.membership.stripe.secretKey);
 
 class PaymentController extends BaseController {
-    constructor(paymentService, userService, academyService) {
+    constructor(paymentService, userService, academyService, academyMemberService) {
         super(paymentService);
 
         this.userService = userService;
         this.academyService = academyService;
+        this.academyMemberService = academyMemberService;
     }
 
     async createPaymentMethod(event) {
@@ -149,14 +150,16 @@ class PaymentController extends BaseController {
       let promises = await Promise.all([
         this.userService.findById(userId),
         this.academyService.findById(academyId),
-        stripe.prices.retrieve(priceId)
+        stripe.prices.retrieve(priceId),
+        this.academyMemberService.list({ 'academy._id': academyId, isOwner: true })
       ]);
 
       let user = promises[0];
       let academy = promises[1];
       let price = promises[2];
-      let isAcademyOwner = academy && academy.owners.find(owner => (owner._id === userId));
+      let academyOwners = promises[3];
 
+      let isAcademyOwner = academyOwners && academyOwners.find(owner => (owner.member._id === userId));
       if(!(user && isAcademyOwner)) {
         return handleError(401, 'Unauthorized');
       }
@@ -188,7 +191,7 @@ class PaymentController extends BaseController {
       }
 
       academy.memberLimit = parseInt(product.metadata.members);
-      let ownerIds = academy.owners.map(owner => (owner._id));
+      let ownerIds = academyOwners.map(owner => (owner.member._id));
       promises = await Promise.all([
         this.service.create(userAcademyPayment),
         this.academyService.update(academy._id, academy),
@@ -211,15 +214,15 @@ class PaymentController extends BaseController {
       let userId = event.user._id
 
       let promise = await Promise.all([
-        this.userService.findById(userId),
-        this.academyService.findById(academyId)
+        this.academyService.findById(academyId),
+        this.academyMemberService.list({ 'academy._id': academyId, isOwner: true })
       ]);
 
-      let user = promise[0];
-      let academy = promise[1];
-      let isAcademyOwner = academy && academy.owners.find(owner => (owner._id === userId));
+      let academy = promise[0];
+      let academyOwners = promise[1];
 
-      if(!(user && isAcademyOwner)) {
+      let isAcademyOwner = academyOwners && academyOwners.find(owner => (owner.member._id === userId));
+      if(!isAcademyOwner) {
         return handleError(401, 'Unauthorized');
       }
 
@@ -254,7 +257,7 @@ class PaymentController extends BaseController {
       );
 
       userAcademyPayment.status = subscription.status;
-      let ownerIds = academy.owners.map(owner => (owner._id));
+      let ownerIds = academyOwners.map(owner => (owner.member._id));
       let promises = await Promise.all([
         this.service.update(userAcademyPayment._id, userAcademyPayment),
         this.academyService.update(academy._id, academy),
@@ -277,15 +280,15 @@ class PaymentController extends BaseController {
       let userId = event.user._id
 
       let promise = await Promise.all([
-        this.userService.findById(userId),
-        this.academyService.findById(academyId)
+        this.academyService.findById(academyId),
+        this.academyMemberService.list({ 'academy._id': academyId, isOwner: true })
       ]);
 
-      let user = promise[0];
-      let academy = promise[1];
-      let isAcademyOwner = academy && academy.owners.find(owner => (owner._id === userId));
+      let academy = promise[0];
+      let academyOwners = promise[1];
 
-      if(!(user && isAcademyOwner)) {
+      let isAcademyOwner = academyOwners && academyOwners.find(owner => (owner.member._id === userId));
+      if(!isAcademyOwner) {
         return handleError(401, 'Unauthorized');
       }
 
@@ -296,7 +299,7 @@ class PaymentController extends BaseController {
       );
 
       academy.memberLimit = 5;
-      let ownerIds = academy.owners.map(owner => (owner._id));
+      let ownerIds = academyOwners.map(owner => (owner.member._id));
       let promises = await Promise.all([
         this.service.deleteById(userAcademyPayment._id),
         this.academyService.update(academy._id, academy),
@@ -342,15 +345,14 @@ class PaymentController extends BaseController {
         let userId = event.user._id
 
         let promise = await Promise.all([
-          this.userService.findById(userId),
-          this.academyService.findById(academyId)
+          this.academyService.findById(academyId),
+          this.academyMemberService.list({ 'member._id': userId, 'academy._id': academyId, isOwner: true })
         ]);
 
-        let user = promise[0];
-        let academy = promise[1];
-        let isAcademyOwner = academy && academy.owners.find(owner => (owner._id === userId));
+        let academy = promise[0];
+        let isAcademyOwner = promise[1];
 
-        if(!(user && isAcademyOwner)) {
+        if(!isAcademyOwner) {
           return handleError(401, 'Unauthorized');
         }
 
