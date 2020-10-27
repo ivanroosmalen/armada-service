@@ -44,6 +44,22 @@ class AcademyMemberService extends MongooseService {
       return this.schema.deleteOne({ 'member._id': id });
   };
 
+  async countsByAcademyIds(academyIds) {
+    let countRequests = [];
+
+    for(let id of academyIds) {
+      countRequests.push(this.schema.count({ 'academy._id': id }));
+    }
+
+    let counts = await Promise.all(countRequests);
+    let response = {};
+    academyIds.forEach((id, index) => {
+      response[id.toString()] = counts[index];
+    })
+
+    return response;
+  }
+
 }
 
 module.exports = new AcademyMemberService(AcademyMember)

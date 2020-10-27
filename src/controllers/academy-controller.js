@@ -20,7 +20,20 @@ class AcademyController extends BaseController {
       try {
           let memberships = await this.academyMemberService.list({'member._id': id});
           let academyIds = memberships.map(membership => membership.academy._id);
-          let academies = await this.service.list({ _id: { $in: academyIds } });
+
+          let promises = await Promise.all([
+            this.service.list({ _id: { $in: academyIds } }),
+            this.academyMemberService.countsByAcademyIds(academyIds)
+          ])
+
+          let academies = promises[0];
+          let countByAcademy = promises[1];
+
+          academies = academies.map(academy => {
+            academy = academy.toObject();
+            academy.memberCount = countByAcademy[academy._id.toString()]
+            return academy;
+          })
 
           let ownerAcademyIds = memberships.filter(member => member.isOwner).map(member => member.academy._id.toString());
           let ownerAcademies = academies.filter(academy => (ownerAcademyIds.indexOf(academy._id.toString()) !== -1))
@@ -62,7 +75,14 @@ class AcademyController extends BaseController {
 
         let entities;
         try {
-            entities = await this.service.list(query, params)
+            entities = await this.service.list(query, params);
+            let academyIds = entities.map(academy => academy._id);
+            let countByAcademy = await this.academyMemberService.countsByAcademyIds(academyIds);
+            entities = entities.map(entity => {
+              let academy = entity.toObject();
+              academy.memberCount = countByAcademy[academy._id.toString()]
+              return academy;
+            })
         } catch(e) {
             return handleError(500, 'Unable to find entities', e);
         }
@@ -72,6 +92,36 @@ class AcademyController extends BaseController {
             body: JSON.stringify({
                 message: 'Entities listed',
                 entity: entities || []
+            })
+        };
+    };
+
+    async get(event) {
+        if(!event || !event.pathParameters || !event.pathParameters.id) {
+            return handleError(400, 'You need to pass a valid id');
+        }
+
+        let entity
+        try {
+            let id = event.pathParameters.id;
+            let promises = await Promise.all([
+              this.service.findById(id),
+              this.academyMemberService.countsByAcademyIds([id])
+            ])
+
+            entity = promises[0];
+            let countByAcademy = promises[1];
+            entity = entity.toObject();
+            entity.memberCount = countByAcademy[id];
+        } catch(e) {
+            return handleError(500, 'Unable to find entity', e);
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Entity returned',
+                entity
             })
         };
     };
