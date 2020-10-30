@@ -44,6 +44,31 @@ class AcademyMemberController extends BaseController {
         };
     };
 
+    async create(event) {
+        if(!event || !event.body) {
+            return handleError(400, 'You need to pass a valid object');
+        }
+
+        let body = event.body;
+
+        let entity;
+        try {
+            body.academy.name = await this.academyService.findById(body.academy._id)
+            entity = await this.service.create(body);
+        } catch(e) {
+            return handleError(500, 'Unable to create entity', e);
+        }
+
+        return {
+            statusCode: 201,
+            body: JSON.stringify({
+                message: 'Entity created',
+                entity
+            })
+        };
+    };
+
+
     async update(event) {
         if(!event || !event.body || !event.pathParameters || !event.pathParameters.id) {
             return handleError(400, 'You need to pass entity info to update an entity');
