@@ -238,7 +238,7 @@ class UserController extends BaseController {
 
                 await emailService.sendJoinFromAcademyEmail([body.email], {academy}, event.body.locale);
                 return {
-                    statusCode: 200,
+                    statusCode: 201,
                     body: JSON.stringify({
                         message: 'User added',
                         entity:{}

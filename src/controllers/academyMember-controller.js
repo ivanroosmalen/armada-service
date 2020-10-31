@@ -1,6 +1,9 @@
 const BaseController = require('./base-controller.js');
+const emailService = require('../services/email-service.js');
 const { handleError } = require('../utils/error-handler.js');
 const settings = require('../settings.js');
+const moment = require('moment');
+const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
 var s3 = new AWS.S3();
@@ -53,7 +56,8 @@ class AcademyMemberController extends BaseController {
 
         let entity;
         try {
-            body.academy.name = await this.academyService.findById(body.academy._id)
+            let academy = await this.academyService.findById(body.academy._id);
+            body.academy.name = academy.name;
             entity = await this.service.create(body);
         } catch(e) {
             return handleError(500, 'Unable to create entity', e);
@@ -92,6 +96,79 @@ class AcademyMemberController extends BaseController {
             statusCode: 200,
             body: JSON.stringify({
                 message: 'Entity updated',
+                entity
+            })
+        };
+    };
+
+    async linkUser(event) {
+        if(!event || !event.body || !event.pathParameters || !event.pathParameters.id) {
+            return handleError(400, 'You need to pass entity info to update an entity');
+        }
+
+        let body = event.body;
+
+        let entity;
+        try {
+            let id = event.pathParameters.id;
+            let promises = await Promise.all([
+              this.service.findById(id),
+              this.userService.findOneByParams({ email: body.email })
+            ])
+            let academyMember = promises[0];
+            let user = promises[1];
+
+            promises = await Promise.all([
+              this.service.findOne({ 'member._id': event.user._id, 'academy._id': academyMember.academy._id, 'isOwner': true }),
+              this.service.findOne({ 'member._id': user._id, academy: academyMember.academy._id })
+            ])
+
+            let isOwner = promises[0];
+            if(!isOwner) {
+                return handleError(401, 'Unauthorized');
+            }
+
+            let existingMember = promises[1];
+            if(existingMember) {
+              return handleError(403, 'User already exists as a member');
+            }
+
+            if(user) {
+                academyMember.member = this.userService.getCondensedUser(user);
+                entity = await this.service.update(id, academyMember);
+
+                await emailService.sendJoinFromAcademyEmail([body.email], {academy: academyMember.academy}, body.locale);
+                return {
+                    statusCode: 201,
+                    body: JSON.stringify({
+                        message: 'User linked',
+                        entity:{}
+                    })
+                };
+            }
+
+            body.emailVerificationToken = uuidv4();
+            body.emailExpiration = moment().add(1, 'hours');
+            body.verified = false;
+            body.admin = false
+
+            let newPassword = Math.floor(1000 + Math.random() * 9000);
+            body.password = bcrypt.hashSync(newPassword.toString(), settings.auth.saltRounds);
+
+            user = await this.userService.create(body);
+
+            academyMember.member = this.userService.getCondensedUser(user);
+            entity = await this.service.update(id, academyMember);
+
+            await emailService.sendRegistrationFromAcademyEmail([body.email], {newPassword, academy: academyMember.academy}, body.locale);
+        } catch(e) {
+            return handleError(500, 'Unable to update entity', e);
+        }
+
+        return {
+            statusCode: 201,
+            body: JSON.stringify({
+                message: 'User linked',
                 entity
             })
         };

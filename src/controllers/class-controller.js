@@ -307,8 +307,16 @@ class ClassController extends BaseController {
             return handleError(400, 'You need to pass a valid object');
           }
 
-          if(classObj.classSize && classObj.classSize < classObj.attendees.length) {
-            return handleError(400, 'Class limit is reached');
+          if(!online) {
+            let inPersonAttendees = classObj.attendees.filter(attendee => !attendee.online);
+            if(classObj.classSize && classObj.classSize <= inPersonAttendees.length) {
+              return handleError(400, 'Class limit is reached');
+            }
+          } else {
+            let onlineAttendees = classObj.attendees.filter(attendee => attendee.online);
+            if(classObj.supportOnlineClasses && classObj.onlineClassSize && classObj.onlineClassSize <= onlineAttendees.length) {
+              return handleError(400, 'Class limit is reached');
+            }
           }
 
           let classToUpdate;
@@ -367,6 +375,63 @@ class ClassController extends BaseController {
             statusCode: 200,
             body: JSON.stringify({
                 message: 'User successfully unattending',
+                entity
+            })
+        };
+    };
+
+    async batchAttend(event) {
+        if(!event || !event.body) {
+            return handleError(400, 'You need to pass a valid object');
+        }
+
+        let { classId, startDate, endDate, attendees } = event.body;
+        let userId = event.user._id;
+
+        if(!(userId && classId && startDate && endDate && attendees)) {
+            return handleError(400, 'You need to pass a valid object');
+        }
+
+        let entity;
+        try {
+          let promise = await Promise.all([
+            this.service.findById(classId),
+            this.service.findByParentIdAndStartDate(classId, startDate)
+          ])
+
+          let classObj = promise[0];
+          let existingClass = promise[1];
+          let academyId = classObj.academyId.toString();
+
+          let academyOWner = await this.academyMemberService.findOne({'member._id': userId, 'academy._id': academyId, isOwner: true});
+
+          if(!academyOWner) {
+            return handleError(401, 'Unauthorized');
+          }
+
+          if(!classObj) {
+            return handleError(400, 'You need to pass a valid object');
+          }
+
+          let classToUpdate;
+          let exactClassExists = moment(classObj.schedule.startDate).valueOf() === moment(startDate).valueOf() || existingClass;
+          if(exactClassExists) {
+            classToUpdate = existingClass || classObj;
+          } else {
+            classToUpdate = await this.createNewClassFromExisting(classObj, startDate, endDate);
+          }
+
+          classToUpdate.attendees = attendees
+          entity = await this.service.update(classToUpdate._id, classToUpdate);
+
+        } catch(e) {
+          return handleError(500, 'Unable to update attendance', e);
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Updated attendees',
                 entity
             })
         };

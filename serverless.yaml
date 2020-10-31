@@ -42,6 +42,7 @@ provider:
   environment: ${file(./serverless.env.yml):${opt:stage, 'dev'}}
   role: arn:aws:iam::302314551855:role/Armada
   timeout: 15
+  versionFunctions: false
 
 functions:
   createAcademyRequests:
@@ -122,6 +123,16 @@ functions:
             parameters:
               paths:
                 id: true
+  linkUser:
+    handler: ${self:custom.academyMembers.handler}.linkUser
+    events:
+      - http:
+          path: ${self:custom.academyMembers.path}/linkUser/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
   getAcademyMember:
     handler: ${self:custom.academyMembers.handler}.get
     events:
@@ -165,6 +176,12 @@ functions:
     events:
       - http:
           path: ${self:custom.classes.path}/unattend
+          method: patch
+  batchAttendClasses:
+    handler: ${self:custom.classes.handler}.batchAttend
+    events:
+      - http:
+          path: ${self:custom.classes.path}/attend/batch
           method: patch
   updateClasses:
     handler: ${self:custom.classes.handler}.update

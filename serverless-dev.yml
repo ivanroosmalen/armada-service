@@ -373,6 +373,12 @@ functions:
       - http:
           path: ${self:custom.classes.path}/unattend
           method: patch
+  batchAttendClasses:
+    handler: ${self:custom.classes.handler}.batchAttend
+    events:
+      - http:
+          path: ${self:custom.classes.path}/attend/batch
+          method: patch
   updateClasses:
     handler: ${self:custom.classes.handler}.update
     events:
@@ -482,6 +488,16 @@ functions:
     events:
       - http:
           path: ${self:custom.academyMembers.path}/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+  linkUser:
+    handler: ${self:custom.academyMembers.handler}.linkUser
+    events:
+      - http:
+          path: ${self:custom.academyMembers.path}/linkUser/{id}
           method: put
           request:
             parameters:
