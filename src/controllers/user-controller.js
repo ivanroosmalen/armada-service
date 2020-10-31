@@ -113,7 +113,7 @@ class UserController extends BaseController {
 
         let entity = {};
         try {
-            let user = await this.service.login(event.body.email, event.body.password);
+            let user = await this.service.login(event.body.email.toLowerCase(), event.body.password);
             entity.jwt = await this.generateJWT(user);
             entity.user = this.cleanseUserResponse(user);
         } catch(e) {
@@ -154,6 +154,7 @@ class UserController extends BaseController {
 
         let entity;
         let body = event.body;
+        body.email = body.email.toLowerCase();
         try {
             let user = await this.service.findOneByParams({ email: body.email });
             if(user) {
@@ -190,6 +191,7 @@ class UserController extends BaseController {
 
         let entity;
         let body = event.body;
+        body.email = body.email.toLowerCase();
         let user;
         let academy;
         let isOwner;
@@ -287,7 +289,7 @@ class UserController extends BaseController {
             return handleError(400, 'Cannot send email');
         }
 
-        let user = await this.service.findOneByParams({ email: event.body.email });
+        let user = await this.service.findOneByParams({ email: event.body.email.toLowerCase() });
         let newPassword = Math.floor(1000 + Math.random() * 9000);
         user.password = bcrypt.hashSync(newPassword.toString(), settings.auth.saltRounds);
 
