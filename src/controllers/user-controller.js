@@ -236,6 +236,10 @@ class UserController extends BaseController {
                   }
                 };
 
+                if(academy.martialArts && academy.martialArts.length === 1) {
+                  academyMember.martialArts = [ academy.martialArts[0].name ];
+                }
+
                 await this.academyMemberService.create(academyMember)
 
                 await emailService.sendJoinFromAcademyEmail([body.email], {academy}, event.body.locale);
@@ -267,6 +271,10 @@ class UserController extends BaseController {
                 name: academy.name
               }
             };
+
+            if(academy.martialArts && academy.martialArts.length === 1) {
+              academyMember.martialArts = [ academy.martialArts[0].name ];
+            }
 
             await this.academyMemberService.create(academyMember);
 

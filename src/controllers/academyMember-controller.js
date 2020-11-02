@@ -56,8 +56,24 @@ class AcademyMemberController extends BaseController {
 
         let entity;
         try {
-            let academy = await this.academyService.findById(body.academy._id);
+            let promises = await Promise.all([
+              this.academyService.findById(body.academy._id),
+              this.service.findOne({ 'member._id': event.user._id, 'academy._id': body.academy._id, 'isOwner': true })
+            ]);
+
+            let academy = promises[0];
+            let isOwner = promises[1];
+
+            if(!isOwner) {
+                return handleError(401, 'Unauthorized');
+            }
+
             body.academy.name = academy.name;
+
+            if(academy.martialArts && academy.martialArts.length === 1) {
+              body.martialArts = [ academy.martialArts[0].name ];
+            }
+
             entity = await this.service.create(body);
         } catch(e) {
             return handleError(500, 'Unable to create entity', e);

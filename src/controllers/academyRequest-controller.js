@@ -102,6 +102,10 @@ class AcademyRequestController extends BaseController {
                   }
                 };
 
+                if(academy.martialArts && academy.martialArts.length === 1) {
+                  academyMember.martialArts = [ academy.martialArts[0].name ];
+                }
+
                 let promises = await Promise.all([
                   this.academyService.addNewMember(newMember, academy),
                   this.academyMemberService.create(academyMember)

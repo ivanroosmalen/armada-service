@@ -114,15 +114,24 @@ class ClassController extends BaseController {
             let query = {
               $and: [
                 {'schedule.startDate': { '$lte': endDate }},
-                {'schedule.startDate': { '$gte': startDate }},
-                {
-                  $or: [
-                    {'attendees._id': event.user._id}, // deprecated
-                    {'attendees.academyMember.member._id': event.user._id}
-                  ]
-                }
+                {'schedule.startDate': { '$gte': startDate }}
               ]
             };
+
+            if(queryParams.academyId) {
+              query['$and'].push({ academyId: queryParams.academyId })
+            }
+
+            if(queryParams.memberId) {
+              query['$and'].push({'attendees.academyMember._id': queryParams.memberId})
+            } else {
+              query['$and'].push({
+                $or: [
+                  {'attendees._id': event.user._id}, // deprecated
+                  {'attendees.academyMember.member._id': event.user._id}
+                ]
+              })
+            }
 
             let classes = await this.service.list(query);
             entities.byWeek = this.groupCurrentUserAttendanceCountByWeek(classes, startDate.tz(timezone), endDate.tz(timezone), timezone);
@@ -146,11 +155,14 @@ class ClassController extends BaseController {
         let timezone = queryParams.timezone || 'utc';
         let startDate = queryParams.startDate ? moment(queryParams.startDate) : moment().subtract(1, 'month');
         let endDate = queryParams.endDate ? moment(queryParams.endDate) : moment();
+        let academyId = queryParams.academyId;
 
         let entities = { byWeek: {}, total: 0 };
+        let memberQuery = { 'member._id': event.user._id, isOwner: true };
+        if(academyId) memberQuery['academy._id'] = academyId
 
         try {
-            let ownerMemberships = await this.academyMemberService.list({ 'member._id': event.user._id, isOwner: true })
+            let ownerMemberships = await this.academyMemberService.list(memberQuery)
             if(!(ownerMemberships && ownerMemberships.length)) {
               return handleError(401, 'Unauthorized', e);
             }
