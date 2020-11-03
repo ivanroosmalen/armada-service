@@ -1,5 +1,5 @@
 
-service: armada-user # NOTE: update this with your service name
+service: armada-dev # NOTE: update this with your service name
 #app: your-app-name
 #tenant: your-tenant-name
 

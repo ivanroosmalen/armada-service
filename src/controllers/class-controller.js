@@ -2,6 +2,7 @@ const BaseController = require('./base-controller.js');
 const { handleError } = require('../utils/error-handler.js');
 const moment = require('moment-timezone');
 const settings = require('../settings.js');
+const { safeAddDays } = require('../utils/datetime-utils.js');
 
 class ClassController extends BaseController {
     constructor(classService, userService, academyService, academyMemberService) {
@@ -15,6 +16,7 @@ class ClassController extends BaseController {
     async list(event) {
         let queryParams = event.queryStringParameters;
         let params = this._getListQuery(queryParams);
+        let timezone = queryParams.timezone || 'America/Los_Angeles';
         let academyId = queryParams.academyId;
         if(!academyId) {
           return handleError(400, 'Unable to get classes', e);
@@ -41,7 +43,7 @@ class ClassController extends BaseController {
               classes.forEach(classObj => {
                 let entity = classObj.toObject();
                 if(entity.schedule.recurring) {
-                  let recurringClasses = this.getRecurringEntities(entity, moment(queryParams.startDate), moment(queryParams.endDate).endOf('day'), entity.schedule.interval, entity._id, entity.schedule.excludes);
+                  let recurringClasses = this.getRecurringEntities(entity, moment(queryParams.startDate).tz(timezone), moment(queryParams.endDate).tz(timezone).endOf('day'), entity.schedule.interval, entity._id, entity.schedule.excludes, timezone);
                   entities.push.apply(entities, recurringClasses)
                 } else {
                   entities.push(entity);
@@ -449,8 +451,8 @@ class ClassController extends BaseController {
         };
     };
 
-    getRecurringEntities(entity, startDate, endDate, interval, parentId, excludes = []) {
-      let entityStartDate = moment(entity.schedule.startDate)
+    getRecurringEntities(entity, startDate, endDate, interval, parentId, excludes = [], timezone = "America/Los_Angeles") {
+      let entityStartDate = moment(entity.schedule.startDate).tz(timezone)
 
       if(entityStartDate > endDate) {
         return [];
@@ -465,20 +467,20 @@ class ClassController extends BaseController {
 
       switch(interval) {
         case 'daily':
-          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).add(1, 'days').toDate();
-          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).add(1, 'days').toDate();
+          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).tz(timezone).add(1, 'days').toDate();
+          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).tz(timezone).add(1, 'days').toDate();
         break;
         case 'weekly':
-          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).add(7, 'days').toDate();
-          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).add(7, 'days').toDate();
+          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).tz(timezone).add(7, 'days').toDate();
+          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).tz(timezone).add(7, 'days').toDate();
         break;
         case 'semiMonthly':
-          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).add(14, 'days').toDate();
-          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).add(14, 'days').toDate();
+          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).tz(timezone).add(14, 'days').toDate();
+          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).tz(timezone).add(14, 'days').toDate();
         break;
         case 'monthly':
-          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).add(31, 'days').toDate();
-          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).add(31, 'days').toDate();
+          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).tz(timezone).add(31, 'days').toDate();
+          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).tz(timezone).add(31, 'days').toDate();
         break;
       }
 
