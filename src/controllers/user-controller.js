@@ -201,7 +201,7 @@ class UserController extends BaseController {
               this.service.findOneByParams({ email: body.email }),
               this.academyService.findById(event.body.academyId),
               this.academyMemberService.findOne({ 'member._id': event.user._id, 'academy._id': event.body.academyId, 'isOwner': true }),
-              this.service.count({ 'academy._id': event.body.academyId })
+              this.academyMemberService.count({ 'academy._id': event.body.academyId })
             ])
 
             user = promises[0];

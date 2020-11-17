@@ -58,14 +58,20 @@ class AcademyMemberController extends BaseController {
         try {
             let promises = await Promise.all([
               this.academyService.findById(body.academy._id),
-              this.service.findOne({ 'member._id': event.user._id, 'academy._id': body.academy._id, 'isOwner': true })
+              this.service.findOne({ 'member._id': event.user._id, 'academy._id': body.academy._id, 'isOwner': true }),
+              this.service.count({ 'academy._id': body.academy._id })
             ]);
 
             let academy = promises[0];
             let isOwner = promises[1];
+            let memberCount = promises[2] || 0;
 
             if(!isOwner) {
                 return handleError(401, 'Unauthorized');
+            }
+
+            if(memberCount >= academy.memberLimit) {
+              return handleError(403, 'Member limit reached');
             }
 
             body.academy.name = academy.name;

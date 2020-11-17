@@ -135,7 +135,7 @@ class BaseController {
         let query = {};
 
         if(queryParams) {
-            let pageSize = parseInt(queryParams.pageSize) || 20;
+            let pageSize = parseInt(queryParams.pageSize) || 1000;
             pageSize = pageSize < 1000 ? pageSize : 1000;
             let page = parseInt(queryParams.page) || 0;
             query.limit = pageSize;
