@@ -298,7 +298,8 @@ class ClassController extends BaseController {
             return handleError(400, 'You need to pass a valid object');
         }
 
-        let { classId, startDate, endDate, online } = event.body;
+        let { classId, startDate, endDate, online, timezone } = event.body;
+        timezone = timezone || 'America/Los_Angeles';
         let userId = event.user._id;
 
         if(!(userId && classId && startDate && endDate)) {
@@ -334,11 +335,17 @@ class ClassController extends BaseController {
           }
 
           let classToUpdate;
-          let exactClassExists = moment(classObj.schedule.startDate).valueOf() === moment(startDate).valueOf() || existingClass;
+          let exactClassExists = !classObj.schedule.recurring || moment(classObj.schedule.startDate).valueOf() === moment(startDate).valueOf() || existingClass;
           if(exactClassExists) {
             classToUpdate = existingClass || classObj;
           } else {
-            classToUpdate = await this.createNewClassFromExisting(classObj, startDate, endDate);
+            // if startDate is not multiple of original class date -> throw error
+            let isValid = this.validateWithRecurringClass(classObj.schedule.interval, classObj.schedule.startDate, startDate);
+            if(!isValid) {
+              return handleError(400, 'startDate does not match recurring class');
+            }
+
+            classToUpdate = await this.createNewClassFromExisting(classObj, startDate, endDate, timezone);
           }
 
           let attendee = {};
@@ -399,7 +406,8 @@ class ClassController extends BaseController {
             return handleError(400, 'You need to pass a valid object');
         }
 
-        let { classId, startDate, endDate, attendees } = event.body;
+        let { classId, startDate, endDate, attendees, timezone } = event.body;
+        timezone = timezone || 'America/Los_Angeles';
         let userId = event.user._id;
 
         if(!(userId && classId && startDate && endDate && attendees)) {
@@ -417,9 +425,9 @@ class ClassController extends BaseController {
           let existingClass = promise[1];
           let academyId = classObj.academyId.toString();
 
-          let academyOWner = await this.academyMemberService.findOne({'member._id': userId, 'academy._id': academyId, isOwner: true});
+          let academyOwner = await this.academyMemberService.findOne({'member._id': userId, 'academy._id': academyId, isOwner: true});
 
-          if(!academyOWner) {
+          if(!academyOwner) {
             return handleError(401, 'Unauthorized');
           }
 
@@ -428,10 +436,16 @@ class ClassController extends BaseController {
           }
 
           let classToUpdate;
-          let exactClassExists = moment(classObj.schedule.startDate).valueOf() === moment(startDate).valueOf() || existingClass;
+          let exactClassExists = !classObj.schedule.recurring || moment(classObj.schedule.startDate).valueOf() === moment(startDate).valueOf() || existingClass;
           if(exactClassExists) {
             classToUpdate = existingClass || classObj;
           } else {
+            // if startDate is not multiple of original class date -> throw error
+            let isValid = this.validateWithRecurringClass(classObj.schedule.interval, classObj.schedule.startDate, startDate, timezone);
+            if(!isValid) {
+              return handleError(400, 'startDate does not match recurring class');
+            }
+
             classToUpdate = await this.createNewClassFromExisting(classObj, startDate, endDate);
           }
 
@@ -451,6 +465,39 @@ class ClassController extends BaseController {
         };
     };
 
+    validateWithRecurringClass(interval, originalStartDate, startDate, timezone = "America/Los_Angeles") {
+
+      if(moment(originalStartDate).valueOf() === moment(startDate).valueOf()) {
+        return true;
+      }
+
+      if(moment(originalStartDate).valueOf() >= moment(startDate).valueOf()) {
+        return false;
+      }
+
+      let intervalDays = this.getIntervalDays(interval);
+      originalStartDate = moment(originalStartDate).tz(timezone).add(intervalDays, 'days').toDate();
+
+      return this.validateWithRecurringClass(interval, originalStartDate, startDate, timezone);
+    }
+
+    getIntervalDays(interval) {
+      switch(interval) {
+        case 'daily':
+          return 1;
+        break;
+        case 'weekly':
+          return 7;
+        break;
+        case 'semiMonthly':
+          return 14;
+        break;
+        case 'monthly':
+          return 31;
+        break;
+      }
+    }
+
     getRecurringEntities(entity, startDate, endDate, interval, parentId, excludes = [], timezone = "America/Los_Angeles") {
       let entityStartDate = moment(entity.schedule.startDate).tz(timezone)
 
@@ -465,24 +512,9 @@ class ClassController extends BaseController {
 
       let newEntity = JSON.parse(JSON.stringify(entity));
 
-      switch(interval) {
-        case 'daily':
-          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).tz(timezone).add(1, 'days').toDate();
-          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).tz(timezone).add(1, 'days').toDate();
-        break;
-        case 'weekly':
-          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).tz(timezone).add(7, 'days').toDate();
-          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).tz(timezone).add(7, 'days').toDate();
-        break;
-        case 'semiMonthly':
-          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).tz(timezone).add(14, 'days').toDate();
-          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).tz(timezone).add(14, 'days').toDate();
-        break;
-        case 'monthly':
-          newEntity.schedule.startDate = moment(newEntity.schedule.startDate).tz(timezone).add(31, 'days').toDate();
-          newEntity.schedule.endDate = moment(newEntity.schedule.endDate).tz(timezone).add(31, 'days').toDate();
-        break;
-      }
+      let intervalDays = this.getIntervalDays(interval);
+      newEntity.schedule.startDate = moment(newEntity.schedule.startDate).tz(timezone).add(intervalDays, 'days').toDate();
+      newEntity.schedule.endDate = moment(newEntity.schedule.endDate).tz(timezone).add(intervalDays, 'days').toDate();
 
       newEntity.parentId = parentId;
       newEntity.schedule.recurring = false;
